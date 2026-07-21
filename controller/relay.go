@@ -6,6 +6,9 @@ import (
 	"io"
 	"log"
 	"net/http"
+	"net/url"
+	"os"
+	"strconv"
 	"strings"
 	"time"
 
@@ -250,9 +253,38 @@ func Relay(c *gin.Context, relayFormat types.RelayFormat) {
 
 var upgrader = websocket.Upgrader{
 	Subprotocols: []string{"realtime"}, // WS 握手支持的协议，如果有使用 Sec-WebSocket-Protocol，则必须在此声明对应的 Protocol TODO add other protocol
-	CheckOrigin: func(r *http.Request) bool {
-		return true // 允许跨域
-	},
+	CheckOrigin:  websocketOriginAllowed,
+}
+
+// websocketOriginAllowed prevents cross-site WebSocket hijacking. CLI/server
+// clients normally omit Origin and remain compatible. Browser clients are
+// same-origin by default; trusted cross-origin consoles must be listed in the
+// same CORS_ALLOWED_ORIGINS configuration used by HTTP endpoints.
+func websocketOriginAllowed(r *http.Request) bool {
+	origin := strings.TrimSpace(r.Header.Get("Origin"))
+	if origin == "" {
+		return true
+	}
+	parsedOrigin, err := url.Parse(origin)
+	if err != nil || parsedOrigin.Host == "" || (parsedOrigin.Scheme != "https" && parsedOrigin.Scheme != "http") {
+		return false
+	}
+	if strings.EqualFold(parsedOrigin.Host, r.Host) {
+		return true
+	}
+	for _, allowed := range strings.Split(os.Getenv("CORS_ALLOWED_ORIGINS"), ",") {
+		allowed = strings.TrimSpace(allowed)
+		if allowed == "" || allowed == "*" {
+			continue
+		}
+		parsedAllowed, parseErr := url.Parse(allowed)
+		if parseErr == nil && parsedAllowed.Scheme != "" && parsedAllowed.Host != "" &&
+			strings.EqualFold(parsedOrigin.Scheme, parsedAllowed.Scheme) &&
+			strings.EqualFold(parsedOrigin.Host, parsedAllowed.Host) {
+			return true
+		}
+	}
+	return false
 }
 
 func addUsedChannel(c *gin.Context, channelId int) {
@@ -304,6 +336,7 @@ func getChannel(c *gin.Context, info *relaycommon.RelayInfo, retryParam *service
 			AutoBan: &autoBanInt,
 		}, nil
 	}
+	retryParam.ExcludedChannelIDs = usedChannelIDSet(c.GetStringSlice("use_channel"))
 	channel, selectGroup, err := service.CacheGetRandomSatisfiedChannel(retryParam)
 
 	info.PriceData.GroupRatioInfo = helper.HandleGroupRatio(c, info)
@@ -320,6 +353,19 @@ func getChannel(c *gin.Context, info *relaycommon.RelayInfo, retryParam *service
 		return nil, newAPIError
 	}
 	return channel, nil
+}
+
+func usedChannelIDSet(channelIDs []string) map[int]struct{} {
+	if len(channelIDs) == 0 {
+		return nil
+	}
+	result := make(map[int]struct{}, len(channelIDs))
+	for _, rawID := range channelIDs {
+		if channelID, err := strconv.Atoi(rawID); err == nil && channelID > 0 {
+			result[channelID] = struct{}{}
+		}
+	}
+	return result
 }
 
 func shouldRetry(c *gin.Context, openaiErr *types.NewAPIError, retryTimes int) bool {
@@ -581,14 +627,13 @@ func RelayTask(c *gin.Context) {
 		task := model.InitTask(result.Platform, relayInfo)
 		task.PrivateData.UpstreamTaskID = result.UpstreamTaskID
 		task.PrivateData.BillingSource = relayInfo.BillingSource
-		task.PrivateData.SubscriptionId = relayInfo.SubscriptionId
 		task.PrivateData.TokenId = relayInfo.TokenId
 		task.PrivateData.NodeName = common.NodeName
 		task.PrivateData.BillingContext = &model.TaskBillingContext{
 			ModelPrice:      relayInfo.PriceData.ModelPrice,
 			GroupRatio:      relayInfo.PriceData.GroupRatioInfo.GroupRatio,
 			ModelRatio:      relayInfo.PriceData.ModelRatio,
-			OtherRatios:     relayInfo.PriceData.OtherRatios,
+			OtherRatios:     relayInfo.PriceData.OtherRatios(),
 			OriginModelName: relayInfo.OriginModelName,
 			PerCallBilling:  common.StringsContains(constant.TaskPricePatches, relayInfo.OriginModelName) || relayInfo.PriceData.UsePrice,
 		}

@@ -129,30 +129,20 @@ type RelayInfo struct {
 	// Billing 是计费会话，封装了预扣费/结算/退款的统一生命周期。
 	// 免费模型时为 nil。
 	Billing BillingSettler
-	// BillingSource indicates whether this request is billed from wallet quota or subscription.
-	// "" or "wallet" => wallet; "subscription" => subscription
+	// BillingSettlementError is copied into the admin-only reconciliation
+	// snapshot when the wallet adjustment could not be committed.
+	BillingSettlementError string
+	// BillingSource identifies the wallet funding source in reconciliation logs.
 	BillingSource string
-	// SubscriptionId is the user_subscriptions.id used when BillingSource == "subscription"
-	SubscriptionId int
-	// SubscriptionPreConsumed is the amount pre-consumed on subscription item (quota units or 1)
-	SubscriptionPreConsumed int64
-	// SubscriptionPostDelta is the post-consume delta applied to amount_used (quota units; can be negative).
-	SubscriptionPostDelta int64
-	// SubscriptionPlanId / SubscriptionPlanTitle are used for logging/UI display.
-	SubscriptionPlanId    int
-	SubscriptionPlanTitle string
 	// RequestId is used for idempotent pre-consume/refund
-	RequestId string
-	// SubscriptionAmountTotal / SubscriptionAmountUsedAfterPreConsume are used to compute remaining in logs.
-	SubscriptionAmountTotal               int64
-	SubscriptionAmountUsedAfterPreConsume int64
-	IsClaudeBetaQuery                     bool // /v1/messages?beta=true
-	IsChannelTest                         bool // channel test request
-	RetryIndex                            int
-	LastError                             *types.NewAPIError
-	RuntimeHeadersOverride                map[string]interface{}
-	UseRuntimeHeadersOverride             bool
-	ParamOverrideAudit                    []string
+	RequestId                 string
+	IsClaudeBetaQuery         bool // /v1/messages?beta=true
+	IsChannelTest             bool // channel test request
+	RetryIndex                int
+	LastError                 *types.NewAPIError
+	RuntimeHeadersOverride    map[string]interface{}
+	UseRuntimeHeadersOverride bool
+	ParamOverrideAudit        []string
 
 	// UpstreamRequestBodySize is the byte size of the marshaled upstream request
 	// body. It is set when the body is wrapped in a BodyStorage (see
@@ -162,6 +152,11 @@ type RelayInfo struct {
 	UpstreamRequestBodySize int64
 
 	PriceData types.PriceData
+
+	// QuotaClamp is set (non-nil) when a quota conversion saturated at the
+	// int32 bound (or NaN fallback) while computing this request's charge.
+	// It is surfaced onto the consume/task log's admin_info for auditing.
+	QuotaClamp *common.QuotaClamp
 
 	// TieredBillingSnapshot is a frozen snapshot of tiered billing rules
 	// captured at pre-consume time. Non-nil only when billing mode is "tiered_expr".

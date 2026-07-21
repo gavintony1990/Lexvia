@@ -79,7 +79,6 @@ import {
   CircleUser,
   Package,
   Server,
-  CalendarClock,
 } from 'lucide-react';
 import {
   SiAtlassian,
@@ -99,13 +98,12 @@ import {
   SiOkta,
   SiOpenid,
   SiReddit,
-  SiSlack,
   SiTelegram,
   SiTwitch,
   SiWechat,
   SiX,
 } from 'react-icons/si';
-import { FaLinkedin } from 'react-icons/fa';
+import { FaLinkedin, FaSlack } from 'react-icons/fa';
 
 // 获取侧边栏Lucide图标组件
 export function getLucideIcon(key, selected = false) {
@@ -148,8 +146,6 @@ export function getLucideIcon(key, selected = false) {
       return <Package {...commonProps} color={iconColor} />;
     case 'deployment':
       return <Server {...commonProps} color={iconColor} />;
-    case 'subscription':
-      return <CalendarClock {...commonProps} color={iconColor} />;
     case 'setting':
       return <Settings {...commonProps} color={iconColor} />;
     default:
@@ -512,7 +508,7 @@ const oauthProviderIconMap = {
   linkedin: FaLinkedin,
   x: SiX,
   twitter: SiX,
-  slack: SiSlack,
+  slack: FaSlack,
   telegram: SiTelegram,
   wechat: SiWechat,
   keycloak: SiKeycloak,

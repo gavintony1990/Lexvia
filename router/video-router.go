@@ -31,6 +31,17 @@ func SetVideoRouter(router *gin.Engine) {
 		videoV1Router.GET("/videos/:task_id", controller.RelayTaskFetch)
 	}
 
+	// BytePlus ModelArk / Volcengine Ark compatible Seedance task routes.
+	// The public task ID remains local so upstream task identifiers and channel
+	// credentials never cross the gateway boundary.
+	seedanceNativeRouter := router.Group("/api/v3/contents/generations")
+	seedanceNativeRouter.Use(middleware.RouteTag("relay"))
+	seedanceNativeRouter.Use(middleware.TokenAuth(), middleware.Distribute())
+	{
+		seedanceNativeRouter.POST("/tasks", controller.RelayTask)
+		seedanceNativeRouter.GET("/tasks/:task_id", controller.RelayTaskFetch)
+	}
+
 	klingV1Router := router.Group("/kling/v1")
 	klingV1Router.Use(middleware.RouteTag("relay"))
 	klingV1Router.Use(middleware.KlingRequestConvert(), middleware.TokenAuth(), middleware.Distribute())

@@ -25,6 +25,7 @@ var channelSyncLock sync.RWMutex
 
 func InitChannelCache() {
 	if !common.MemoryCacheEnabled {
+		InvalidatePricingCache()
 		return
 	}
 	newChannelId2channel := make(map[int]*Channel)
@@ -94,6 +95,11 @@ func InitChannelCache() {
 	channelsIDM = newChannelId2channel
 	channel2advancedCustomConfig = newChannel2advancedCustomConfig
 	channelSyncLock.Unlock()
+	// Lock ordering: InvalidatePricingCache acquires updatePricingLock, and
+	// GetPricing (holding updatePricingLock) nests channelSyncLock.RLock via
+	// loadPricingAdvancedCustomConfigs. channelSyncLock MUST be released before
+	// invalidating the pricing cache, otherwise the reversed order deadlocks.
+	InvalidatePricingCache()
 	common.SysLog("channels synced from database")
 }
 
@@ -105,22 +111,24 @@ func SyncChannelCache(frequency int) {
 	}
 }
 
-func GetRandomSatisfiedChannel(group string, model string, retry int, requestPath string) (*Channel, error) {
+func GetRandomSatisfiedChannel(group string, model string, retry int, requestPath string, excludedChannelIDs map[int]struct{}) (*Channel, error) {
 	// if memory cache is disabled, get channel directly from database
 	if !common.MemoryCacheEnabled {
-		return GetChannel(group, model, retry, requestPath)
+		return GetChannel(group, model, retry, requestPath, excludedChannelIDs)
 	}
 
 	channelSyncLock.RLock()
 	defer channelSyncLock.RUnlock()
 
 	// First, try to find channels with the exact model name.
-	channels := filterChannelsByRequestPath(group2model2channels[group][model], requestPath)
+	channels := filterChannelsByRequestPathAndModel(group2model2channels[group][model], requestPath, model)
+	channels = filterExcludedChannelIDs(channels, excludedChannelIDs)
 
 	// If no channels found, try to find channels with the normalized model name.
 	if len(channels) == 0 {
 		normalizedModel := ratio_setting.FormatMatchingModelName(model)
-		channels = filterChannelsByRequestPath(group2model2channels[group][normalizedModel], requestPath)
+		channels = filterChannelsByRequestPathAndModel(group2model2channels[group][normalizedModel], requestPath, model)
+		channels = filterExcludedChannelIDs(channels, excludedChannelIDs)
 	}
 
 	if len(channels) == 0 {
@@ -202,12 +210,25 @@ func GetRandomSatisfiedChannel(group string, model string, retry int, requestPat
 	return nil, errors.New("channel not found")
 }
 
-// filterChannelsByRequestPath restricts candidates by request path. Only Advanced
-// Custom (type 58) channels are path-checked: they are kept only when one of their
-// configured routes matches requestPath. All other channel types always pass.
-// When requestPath is empty (non-relay callers) filtering is skipped.
+func filterExcludedChannelIDs(channels []int, excluded map[int]struct{}) []int {
+	if len(channels) == 0 || len(excluded) == 0 {
+		return channels
+	}
+	filtered := make([]int, 0, len(channels))
+	for _, channelID := range channels {
+		if _, alreadyTried := excluded[channelID]; !alreadyTried {
+			filtered = append(filtered, channelID)
+		}
+	}
+	return filtered
+}
+
+// filterChannelsByRequestPathAndModel restricts candidates by request path and
+// model. Only Advanced Custom (type 58) channels are path-checked: they are kept
+// only when one of their configured routes matches requestPath and model. All
+// other channel types always pass. When requestPath is empty, filtering is skipped.
 // Caller must hold channelSyncLock (read lock). The cached slice is never mutated.
-func filterChannelsByRequestPath(channels []int, requestPath string) []int {
+func filterChannelsByRequestPathAndModel(channels []int, requestPath string, model string) []int {
 	if requestPath == "" || len(channels) == 0 {
 		return channels
 	}
@@ -223,7 +244,7 @@ func filterChannelsByRequestPath(channels []int, requestPath string) []int {
 			filtered = append(filtered, channelId)
 			continue
 		}
-		if config := channel2advancedCustomConfig[channelId]; config != nil && config.SupportsPath(requestPath) {
+		if config := channel2advancedCustomConfig[channelId]; config != nil && config.SupportsPathForModel(requestPath, model) {
 			filtered = append(filtered, channelId)
 		}
 	}
@@ -292,8 +313,8 @@ func CacheUpdateChannel(channel *Channel) {
 		return
 	}
 	channelSyncLock.Lock()
-	defer channelSyncLock.Unlock()
 	if channel == nil {
+		channelSyncLock.Unlock()
 		return
 	}
 
@@ -304,5 +325,20 @@ func CacheUpdateChannel(channel *Channel) {
 		logger.LogDebug(nil, "CacheUpdateChannel before: id=%d, name=%s, status=%d, polling_index=%d", channel.Id, channel.Name, channel.Status, oldChannel.ChannelInfo.MultiKeyPollingIndex)
 	}
 	channelsIDM[channel.Id] = channel
+	if channel2advancedCustomConfig == nil {
+		channel2advancedCustomConfig = make(map[int]*dto.AdvancedCustomConfig)
+	}
+	delete(channel2advancedCustomConfig, channel.Id)
+	if channel.Type == constant.ChannelTypeAdvancedCustom {
+		if config := channel.GetOtherSettings().AdvancedCustom; config != nil {
+			channel2advancedCustomConfig[channel.Id] = config
+		}
+	}
 	logger.LogDebug(nil, "CacheUpdateChannel after: id=%d, name=%s, status=%d, polling_index=%d", channel.Id, channel.Name, channel.Status, channel.ChannelInfo.MultiKeyPollingIndex)
+	// Lock ordering: do NOT hold channelSyncLock while calling
+	// InvalidatePricingCache. GetPricing acquires updatePricingLock first and then
+	// channelSyncLock.RLock (via loadPricingAdvancedCustomConfigs); acquiring
+	// updatePricingLock while holding channelSyncLock would be an AB-BA deadlock.
+	channelSyncLock.Unlock()
+	InvalidatePricingCache()
 }

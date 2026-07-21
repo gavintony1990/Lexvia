@@ -2,17 +2,90 @@ package service
 
 import (
 	"encoding/base64"
+	"fmt"
 	"strings"
 
 	"github.com/QuantumNous/new-api/common"
 	"github.com/QuantumNous/new-api/constant"
 	"github.com/QuantumNous/new-api/dto"
+	"github.com/QuantumNous/new-api/logger"
 	"github.com/QuantumNous/new-api/pkg/billingexpr"
 	relaycommon "github.com/QuantumNous/new-api/relay/common"
 	"github.com/QuantumNous/new-api/types"
 
 	"github.com/gin-gonic/gin"
 )
+
+// attachQuotaSaturationToOther nests a quota saturation marker under
+// other.admin_info.quota_saturation. Nesting under admin_info makes it
+// admin-only for free, since model.formatUserLogs strips the whole admin_info
+// object for non-admin viewers. Creates admin_info if absent. No-op when the
+// clamp is nil (the common case: no saturation happened).
+func attachQuotaSaturationToOther(other map[string]interface{}, clamp *common.QuotaClamp) {
+	if clamp == nil || other == nil {
+		return
+	}
+	adminInfo, ok := other["admin_info"].(map[string]interface{})
+	if !ok || adminInfo == nil {
+		adminInfo = map[string]interface{}{}
+		other["admin_info"] = adminInfo
+	}
+	adminInfo["quota_saturation"] = clamp.AuditMap()
+}
+
+// attachQuotaSaturation records the request's quota clamp (if any) onto the
+// consume log's other.admin_info and emits a request-correlated backend audit
+// line. Called right before RecordConsumeLog on the text/audio/wss paths.
+func attachQuotaSaturation(ctx *gin.Context, relayInfo *relaycommon.RelayInfo, other map[string]interface{}) {
+	if relayInfo == nil {
+		return
+	}
+	clamp := relayInfo.QuotaClamp
+	if clamp == nil {
+		return
+	}
+	attachQuotaSaturationToOther(other, clamp)
+	logger.LogWarn(ctx, fmt.Sprintf("quota saturation on consume log: op=%s kind=%s original=%g clamped=%d user=%d model=%s",
+		clamp.Op, clamp.Kind, clamp.Original, clamp.Clamped, relayInfo.UserId, relayInfo.OriginModelName))
+}
+
+// attachBillingReconciliation adds a stable, request-level accounting
+// snapshot to the admin-only portion of a consume log. The values are quota
+// units (not display currency), which keeps the record lossless and makes it
+// possible to reconcile wallet changes by request_id across all relay paths.
+func attachBillingReconciliation(other map[string]interface{}, relayInfo *relaycommon.RelayInfo, actualQuota int, status string) {
+	if other == nil || relayInfo == nil {
+		return
+	}
+	adminInfo, ok := other["admin_info"].(map[string]interface{})
+	if !ok || adminInfo == nil {
+		adminInfo = make(map[string]interface{})
+		other["admin_info"] = adminInfo
+	}
+
+	preConsumed := relayInfo.FinalPreConsumedQuota
+	fundingSource := relayInfo.BillingSource
+	if fundingSource == "" {
+		fundingSource = BillingSourceWallet
+	}
+	if status == "" {
+		status = "settled"
+	}
+	reconciliation := map[string]interface{}{
+		"schema_version":     1,
+		"funding_source":     fundingSource,
+		"pre_consumed_quota": preConsumed,
+		"actual_quota":       actualQuota,
+		"delta_quota":        actualQuota - preConsumed,
+		"settlement_status":  status,
+		"retry_index":        relayInfo.RetryIndex,
+	}
+	if relayInfo.BillingSettlementError != "" {
+		reconciliation["settlement_status"] = "error"
+		reconciliation["settlement_error"] = relayInfo.BillingSettlementError
+	}
+	adminInfo["billing_reconciliation"] = reconciliation
+}
 
 func appendRequestPath(ctx *gin.Context, relayInfo *relaycommon.RelayInfo, other map[string]interface{}) {
 	if other == nil {
@@ -120,53 +193,9 @@ func appendBillingInfo(relayInfo *relaycommon.RelayInfo, other map[string]interf
 	if relayInfo == nil || other == nil {
 		return
 	}
-	// billing_source: "wallet" or "subscription"
+	// billing_source is retained for stable reconciliation output.
 	if relayInfo.BillingSource != "" {
 		other["billing_source"] = relayInfo.BillingSource
-	}
-	if relayInfo.UserSetting.BillingPreference != "" {
-		other["billing_preference"] = relayInfo.UserSetting.BillingPreference
-	}
-	if relayInfo.BillingSource == "subscription" {
-		if relayInfo.SubscriptionId != 0 {
-			other["subscription_id"] = relayInfo.SubscriptionId
-		}
-		if relayInfo.SubscriptionPreConsumed > 0 {
-			other["subscription_pre_consumed"] = relayInfo.SubscriptionPreConsumed
-		}
-		// post_delta: settlement delta applied after actual usage is known (can be negative for refund)
-		if relayInfo.SubscriptionPostDelta != 0 {
-			other["subscription_post_delta"] = relayInfo.SubscriptionPostDelta
-		}
-		if relayInfo.SubscriptionPlanId != 0 {
-			other["subscription_plan_id"] = relayInfo.SubscriptionPlanId
-		}
-		if relayInfo.SubscriptionPlanTitle != "" {
-			other["subscription_plan_title"] = relayInfo.SubscriptionPlanTitle
-		}
-		// Compute "this request" subscription consumed + remaining
-		consumed := relayInfo.SubscriptionPreConsumed + relayInfo.SubscriptionPostDelta
-		usedFinal := relayInfo.SubscriptionAmountUsedAfterPreConsume + relayInfo.SubscriptionPostDelta
-		if consumed < 0 {
-			consumed = 0
-		}
-		if usedFinal < 0 {
-			usedFinal = 0
-		}
-		if relayInfo.SubscriptionAmountTotal > 0 {
-			remain := relayInfo.SubscriptionAmountTotal - usedFinal
-			if remain < 0 {
-				remain = 0
-			}
-			other["subscription_total"] = relayInfo.SubscriptionAmountTotal
-			other["subscription_used"] = usedFinal
-			other["subscription_remain"] = remain
-		}
-		if consumed > 0 {
-			other["subscription_consumed"] = consumed
-		}
-		// Wallet quota is not deducted when billed from subscription.
-		other["wallet_quota_deducted"] = 0
 	}
 }
 

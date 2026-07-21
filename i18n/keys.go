@@ -86,6 +86,9 @@ const (
 	MsgUserRequire2FA                = "user.require_2fa"
 	MsgUserEmailVerificationRequired = "user.email_verification_required"
 	MsgUserVerificationCodeError     = "user.verification_code_error"
+	MsgUserEmailAlreadyTaken         = "user.email_already_taken"
+	MsgUserPasswordUnset             = "user.password_unset"
+	MsgUserPasswordResetLinkInvalid  = "user.password_reset_link_invalid"
 	MsgUserInputInvalid              = "user.input_invalid"
 	MsgUserNoPermissionSameLevel     = "user.no_permission_same_level"
 	MsgUserNoPermissionHigherLevel   = "user.no_permission_higher_level"
@@ -123,21 +126,6 @@ const (
 	MsgQuotaInsufficient    = "quota.insufficient"
 	MsgQuotaWarningInvalid  = "quota.warning_invalid"
 	MsgQuotaThresholdGtZero = "quota.threshold_gt_zero"
-)
-
-// Subscription related messages
-const (
-	MsgSubscriptionNotEnabled       = "subscription.not_enabled"
-	MsgSubscriptionTitleEmpty       = "subscription.title_empty"
-	MsgSubscriptionPriceNegative    = "subscription.price_negative"
-	MsgSubscriptionPriceMax         = "subscription.price_max"
-	MsgSubscriptionPurchaseLimitNeg = "subscription.purchase_limit_negative"
-	MsgSubscriptionQuotaNegative    = "subscription.quota_negative"
-	MsgSubscriptionGroupNotExists   = "subscription.group_not_exists"
-	MsgSubscriptionResetCycleGtZero = "subscription.reset_cycle_gt_zero"
-	MsgSubscriptionPurchaseMax      = "subscription.purchase_max"
-	MsgSubscriptionInvalidId        = "subscription.invalid_id"
-	MsgSubscriptionInvalidUserId    = "subscription.invalid_user_id"
 )
 
 // Payment related messages
