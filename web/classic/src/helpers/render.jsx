@@ -79,7 +79,6 @@ import {
   CircleUser,
   Package,
   Server,
-  CalendarClock,
 } from 'lucide-react';
 import {
   SiAtlassian,
@@ -147,8 +146,6 @@ export function getLucideIcon(key, selected = false) {
       return <Package {...commonProps} color={iconColor} />;
     case 'deployment':
       return <Server {...commonProps} color={iconColor} />;
-    case 'subscription':
-      return <CalendarClock {...commonProps} color={iconColor} />;
     case 'setting':
       return <Settings {...commonProps} color={iconColor} />;
     default:

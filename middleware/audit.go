@@ -87,8 +87,6 @@ var auditRouteActions = map[string]string{
 	"PUT /api/deployments/:id":    "deployment.update",
 	"DELETE /api/deployments/:id": "deployment.delete",
 
-	// 订阅（管理员）
-
 	// 日志
 	"DELETE /api/log/": "log.clear",
 }

@@ -51,10 +51,10 @@ The review found four high-impact deployment weaknesses in the inherited HTTP bo
 - Browser responses now include `X-Content-Type-Options`, `X-Frame-Options`, `Referrer-Policy`, and a restrictive `Permissions-Policy` (`middleware/security_headers.go:7-14`).
 - Seedance native requests enforce a non-empty model/text prompt and the existing bounded billing duration before forwarding (`relay/channel/task/doubao/adaptor.go:120-194`).
 - Retry routing excludes already-attempted channels, reducing repeated requests to the same failing upstream (`controller/relay.go:294-338`).
-- Subscription purchase/management routes are not registered, and new requests use wallet-only funding (`router/api-router.go:150-163`, `service/billing_session.go:337-375`).
+- Subscription purchase/management routes, models, payment callbacks, UI modules, and alternate funding source have been removed; requests use wallet-only funding.
 
 ## Residual considerations
 
 - A deployment-specific Content Security Policy is not forced by the application because operators may configure different analytics and embedded console origins. Configure CSP at the ingress after enumerating the required origins.
 - TLS termination is expected at the reverse proxy/load balancer. Keep the application listener on a private network and enforce HTTPS/HSTS at the edge.
-- Legacy subscription tables and settlement helpers remain migration-readable for safe upgrades and in-flight historical task reconciliation; no public subscription endpoints or new subscription-funded sessions remain.
+- Existing subscription tables are left untouched in deployed databases, but application migrations no longer create or update them and no runtime code reads or writes them.

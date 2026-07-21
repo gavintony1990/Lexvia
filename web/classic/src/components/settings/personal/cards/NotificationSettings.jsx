@@ -87,7 +87,6 @@ const NotificationSettings = ({
       channel: true,
       models: true,
       deployment: true,
-      subscription: true,
       redemption: true,
       user: true,
       setting: true,
@@ -171,7 +170,6 @@ const NotificationSettings = ({
         channel: true,
         models: true,
         deployment: true,
-        subscription: true,
         redemption: true,
         user: true,
         setting: true,
@@ -298,11 +296,6 @@ const NotificationSettings = ({
           key: 'deployment',
           title: t('模型部署'),
           description: t('模型部署管理'),
-        },
-        {
-          key: 'subscription',
-          title: t('订阅管理'),
-          description: t('订阅套餐管理'),
         },
         {
           key: 'redemption',
@@ -454,7 +447,7 @@ const NotificationSettings = ({
                   onChange={(val) => handleFormChange('warningThreshold', val)}
                   prefix={<IconBell />}
                   extraText={t(
-                    '当钱包或订阅剩余额度低于此数值时，系统将通过选择的方式发送通知',
+                    '当钱包剩余额度低于此数值时，系统将通过选择的方式发送通知',
                   )}
                   style={{ width: '100%', maxWidth: '300px' }}
                   rules={[
