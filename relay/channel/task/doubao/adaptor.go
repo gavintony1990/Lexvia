@@ -6,6 +6,7 @@ import (
 	"io"
 	"net/http"
 	"strconv"
+	"strings"
 	"time"
 
 	"github.com/QuantumNous/new-api/common"
@@ -117,8 +118,80 @@ func (a *TaskAdaptor) Init(info *relaycommon.RelayInfo) {
 
 // ValidateRequestAndSetAction parses body, validates fields and sets default action.
 func (a *TaskAdaptor) ValidateRequestAndSetAction(c *gin.Context, info *relaycommon.RelayInfo) (taskErr *dto.TaskError) {
+	if strings.HasPrefix(c.Request.URL.Path, "/api/v3/contents/generations/tasks") {
+		return validateNativeRequest(c, info)
+	}
 	// Accept only POST /v1/video/generations as "generate" action.
 	return relaycommon.ValidateBasicTaskRequest(c, info, constant.TaskActionGenerate)
+}
+
+// validateNativeRequest accepts the ModelArk/Ark Seedance content[] request
+// shape without forcing API clients to wrap provider fields in metadata.
+func validateNativeRequest(c *gin.Context, info *relaycommon.RelayInfo) *dto.TaskError {
+	var raw map[string]any
+	if err := common.UnmarshalBodyReusable(c, &raw); err != nil {
+		return nativeTaskError(err, "invalid_request", http.StatusBadRequest)
+	}
+
+	data, err := common.Marshal(raw)
+	if err != nil {
+		return nativeTaskError(err, "invalid_request", http.StatusBadRequest)
+	}
+	var native requestPayload
+	if err = common.Unmarshal(data, &native); err != nil {
+		return nativeTaskError(err, "invalid_request", http.StatusBadRequest)
+	}
+	if strings.TrimSpace(native.Model) == "" {
+		return nativeTaskError(fmt.Errorf("model field is required"), "missing_model", http.StatusBadRequest)
+	}
+
+	textParts := make([]string, 0, len(native.Content))
+	for _, item := range native.Content {
+		if item.Type == "text" && strings.TrimSpace(item.Text) != "" {
+			textParts = append(textParts, strings.TrimSpace(item.Text))
+		}
+	}
+	if len(textParts) == 0 {
+		return nativeTaskError(fmt.Errorf("content must contain a non-empty text item"), "invalid_request", http.StatusBadRequest)
+	}
+
+	duration := 0
+	if native.Duration != nil {
+		duration = int(*native.Duration)
+		if duration < 1 || duration > relaycommon.MaxTaskDurationSeconds {
+			return nativeTaskError(
+				fmt.Errorf("duration must be between 1 and %d", relaycommon.MaxTaskDurationSeconds),
+				"invalid_seconds",
+				http.StatusBadRequest,
+			)
+		}
+	}
+
+	metadata := make(map[string]any, len(raw))
+	for key, value := range raw {
+		if key != "model" {
+			metadata[key] = value
+		}
+	}
+	req := relaycommon.TaskSubmitReq{
+		Prompt:   strings.Join(textParts, "\n"),
+		Model:    native.Model,
+		Duration: duration,
+		Metadata: metadata,
+	}
+	info.Action = constant.TaskActionGenerate
+	c.Set("task_request", req)
+	return nil
+}
+
+func nativeTaskError(err error, code string, statusCode int) *dto.TaskError {
+	return &dto.TaskError{
+		Code:       code,
+		Message:    err.Error(),
+		StatusCode: statusCode,
+		LocalError: true,
+		Error:      err,
+	}
 }
 
 // BuildRequestURL constructs the upstream URL.

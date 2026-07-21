@@ -6,10 +6,13 @@ import (
 	"embed"
 	"errors"
 	"fmt"
+	"html"
 	"log"
 	"net/http"
+	"net/url"
 	"os"
 	"os/signal"
+	"regexp"
 	"strconv"
 	"strings"
 	"syscall"
@@ -102,6 +105,10 @@ func main() {
 		go model.SyncChannelCache(common.SyncFrequency)
 	}
 
+	// Warm pricing after channel cache initialization so Advanced Custom
+	// endpoint inference can read cached route settings on first request.
+	model.GetPricing()
+
 	// 热更新配置
 	go model.SyncOptions(common.SyncFrequency)
 
@@ -121,9 +128,6 @@ func main() {
 
 	// Codex credential auto-refresh check every 10 minutes, refresh when expires within 1 day
 	service.StartCodexCredentialAutoRefreshTask()
-
-	// Subscription quota reset task (daily/weekly/monthly/custom)
-	service.StartSubscriptionQuotaResetTask()
 
 	// Report this process as a system instance so the System Info page can show
 	// all currently alive nodes in multi-instance deployments.
@@ -155,11 +159,19 @@ func main() {
 	}
 
 	if os.Getenv("ENABLE_PPROF") == "true" {
+		pprofAddr := common.GetEnvOrDefaultString("PPROF_ADDR", "127.0.0.1:8005")
+		pprofServer := &http.Server{
+			Addr:              pprofAddr,
+			Handler:           http.DefaultServeMux,
+			ReadHeaderTimeout: 5 * time.Second,
+			IdleTimeout:       30 * time.Second,
+			MaxHeaderBytes:    64 << 10,
+		}
 		gopool.Go(func() {
-			log.Println(http.ListenAndServe("0.0.0.0:8005", nil))
+			log.Println(pprofServer.ListenAndServe())
 		})
 		go common.Monitor()
-		common.SysLog("pprof enabled")
+		common.SysLog("pprof enabled on " + pprofAddr)
 	}
 
 	err = common.StartPyroScope()
@@ -181,7 +193,8 @@ func main() {
 	// This will cause SSE not to work!!!
 	//server.Use(gzip.Gzip(gzip.DefaultCompression))
 	server.Use(middleware.RequestId())
-	server.Use(middleware.PoweredBy())
+	server.Use(middleware.Version())
+	server.Use(middleware.SecurityHeaders())
 	server.Use(middleware.I18n())
 	middleware.SetUpLogger(server)
 	// Initialize session store
@@ -190,7 +203,7 @@ func main() {
 		Path:     "/",
 		MaxAge:   2592000, // 30 days
 		HttpOnly: true,
-		Secure:   false,
+		Secure:   common.SessionCookieSecure,
 		SameSite: http.SameSiteStrictMode,
 	})
 	server.Use(sessions.Sessions("session", store))
@@ -211,8 +224,11 @@ func main() {
 	}
 
 	srv := &http.Server{
-		Addr:    ":" + port,
-		Handler: server,
+		Addr:              ":" + port,
+		Handler:           server,
+		ReadHeaderTimeout: time.Duration(common.GetEnvOrDefault("HTTP_READ_HEADER_TIMEOUT_SECONDS", 10)) * time.Second,
+		IdleTimeout:       time.Duration(common.GetEnvOrDefault("HTTP_IDLE_TIMEOUT_SECONDS", 120)) * time.Second,
+		MaxHeaderBytes:    common.GetEnvOrDefault("HTTP_MAX_HEADER_BYTES", 1<<20),
 	}
 
 	go func() {
@@ -220,6 +236,8 @@ func main() {
 			common.FatalLog("failed to start HTTP server: " + err.Error())
 		}
 	}()
+
+	time.Sleep(100 * time.Millisecond)
 
 	common.LogStartupSuccess(startTime, port)
 
@@ -245,16 +263,20 @@ func main() {
 func InjectUmamiAnalytics() {
 	analyticsInjectBuilder := &strings.Builder{}
 	if os.Getenv("UMAMI_WEBSITE_ID") != "" {
-		umamiSiteID := os.Getenv("UMAMI_WEBSITE_ID")
+		umamiSiteID := sanitizeAnalyticsID(os.Getenv("UMAMI_WEBSITE_ID"))
 		umamiScriptURL := os.Getenv("UMAMI_SCRIPT_URL")
 		if umamiScriptURL == "" {
 			umamiScriptURL = "https://analytics.umami.is/script.js"
 		}
-		analyticsInjectBuilder.WriteString("<script defer src=\"")
-		analyticsInjectBuilder.WriteString(umamiScriptURL)
-		analyticsInjectBuilder.WriteString("\" data-website-id=\"")
-		analyticsInjectBuilder.WriteString(umamiSiteID)
-		analyticsInjectBuilder.WriteString("\"></script>")
+		if safeURL, ok := safeAnalyticsURL(umamiScriptURL); ok && umamiSiteID != "" {
+			analyticsInjectBuilder.WriteString("<script defer src=\"")
+			analyticsInjectBuilder.WriteString(html.EscapeString(safeURL))
+			analyticsInjectBuilder.WriteString("\" data-website-id=\"")
+			analyticsInjectBuilder.WriteString(html.EscapeString(umamiSiteID))
+			analyticsInjectBuilder.WriteString("\"></script>")
+		} else {
+			common.SysError("ignored invalid Umami analytics configuration")
+		}
 	}
 	analyticsInjectBuilder.WriteString("<!--Umami QuantumNous-->\n")
 	analyticsInject := []byte(analyticsInjectBuilder.String())
@@ -266,25 +288,47 @@ func InjectUmamiAnalytics() {
 func InjectGoogleAnalytics() {
 	analyticsInjectBuilder := &strings.Builder{}
 	if os.Getenv("GOOGLE_ANALYTICS_ID") != "" {
-		gaID := os.Getenv("GOOGLE_ANALYTICS_ID")
-		// Google Analytics 4 (gtag.js)
-		analyticsInjectBuilder.WriteString("<script async src=\"https://www.googletagmanager.com/gtag/js?id=")
-		analyticsInjectBuilder.WriteString(gaID)
-		analyticsInjectBuilder.WriteString("\"></script>")
-		analyticsInjectBuilder.WriteString("<script>")
-		analyticsInjectBuilder.WriteString("window.dataLayer = window.dataLayer || [];")
-		analyticsInjectBuilder.WriteString("function gtag(){dataLayer.push(arguments);}")
-		analyticsInjectBuilder.WriteString("gtag('js', new Date());")
-		analyticsInjectBuilder.WriteString("gtag('config', '")
-		analyticsInjectBuilder.WriteString(gaID)
-		analyticsInjectBuilder.WriteString("');")
-		analyticsInjectBuilder.WriteString("</script>")
+		gaID := sanitizeAnalyticsID(os.Getenv("GOOGLE_ANALYTICS_ID"))
+		if gaID == "" {
+			common.SysError("ignored invalid Google Analytics ID")
+		} else {
+			// Google Analytics 4 (gtag.js)
+			analyticsInjectBuilder.WriteString("<script async src=\"https://www.googletagmanager.com/gtag/js?id=")
+			analyticsInjectBuilder.WriteString(gaID)
+			analyticsInjectBuilder.WriteString("\"></script>")
+			analyticsInjectBuilder.WriteString("<script>")
+			analyticsInjectBuilder.WriteString("window.dataLayer = window.dataLayer || [];")
+			analyticsInjectBuilder.WriteString("function gtag(){dataLayer.push(arguments);}")
+			analyticsInjectBuilder.WriteString("gtag('js', new Date());")
+			analyticsInjectBuilder.WriteString("gtag('config', '")
+			analyticsInjectBuilder.WriteString(gaID)
+			analyticsInjectBuilder.WriteString("');")
+			analyticsInjectBuilder.WriteString("</script>")
+		}
 	}
 	analyticsInjectBuilder.WriteString("<!--Google Analytics QuantumNous-->\n")
 	analyticsInject := []byte(analyticsInjectBuilder.String())
 	placeholder := []byte("<!--Google Analytics-->\n")
 	indexPage = bytes.ReplaceAll(indexPage, placeholder, analyticsInject)
 	classicIndexPage = bytes.ReplaceAll(classicIndexPage, placeholder, analyticsInject)
+}
+
+var analyticsIDPattern = regexp.MustCompile(`^[A-Za-z0-9_-]{1,128}$`)
+
+func sanitizeAnalyticsID(value string) string {
+	value = strings.TrimSpace(value)
+	if !analyticsIDPattern.MatchString(value) {
+		return ""
+	}
+	return value
+}
+
+func safeAnalyticsURL(value string) (string, bool) {
+	parsed, err := url.Parse(strings.TrimSpace(value))
+	if err != nil || parsed.Host == "" || (parsed.Scheme != "https" && parsed.Scheme != "http") {
+		return "", false
+	}
+	return parsed.String(), true
 }
 
 func InitResources() error {
@@ -327,9 +371,6 @@ func InitResources() error {
 
 	// 清理旧的磁盘缓存文件
 	common.CleanupOldCacheFiles()
-
-	// 初始化模型
-	model.GetPricing()
 
 	// Initialize SQL Database
 	err = model.InitLogDB()
