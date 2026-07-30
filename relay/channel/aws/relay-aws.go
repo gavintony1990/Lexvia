@@ -42,9 +42,9 @@ func getAwsErrorStatusCode(err error) int {
 
 func newAwsInvokeContext() (context.Context, context.CancelFunc) {
 	if common.RelayTimeout <= 0 {
-		return context.Background(), func() {}
+		return context.WithCancel(common.ShutdownCtx)
 	}
-	return context.WithTimeout(context.Background(), time.Duration(common.RelayTimeout)*time.Second)
+	return context.WithTimeout(common.ShutdownCtx, time.Duration(common.RelayTimeout)*time.Second)
 }
 
 func newAwsClient(c *gin.Context, info *relaycommon.RelayInfo) (*bedrockruntime.Client, error) {
