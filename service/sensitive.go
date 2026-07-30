@@ -17,7 +17,6 @@ func CheckSensitiveMessages(messages []dto.Message) ([]string, error) {
 		arrayContent := message.ParseContent()
 		for _, m := range arrayContent {
 			if m.Type == "image_url" {
-				// TODO: check image url
 				continue
 			}
 			// 检查 text 是否为空
