@@ -126,56 +126,68 @@ func normalizeClickHouseDSN(dsn string) string {
 
 func chooseDB(envName string, isLog bool) (*gorm.DB, common.DatabaseType, error) {
 	dsn := os.Getenv(envName)
-	if dsn != "" {
-		if isClickHouseDSN(dsn) {
-			if !isLog {
-				return nil, "", fmt.Errorf("%s does not support ClickHouse; use SQLite, MySQL, or PostgreSQL for the primary database and LOG_SQL_DSN for ClickHouse logs", envName)
-			}
-			common.SysLog("using ClickHouse as log database")
-			db, err := gorm.Open(clickhouse.Open(normalizeClickHouseDSN(dsn)), &gorm.Config{
-				PrepareStmt: false,
-			})
-			return db, common.DatabaseTypeClickHouse, err
-		}
-		if strings.HasPrefix(dsn, "postgres://") || strings.HasPrefix(dsn, "postgresql://") {
-			// Use PostgreSQL
-			common.SysLog("using PostgreSQL as database")
-			db, err := gorm.Open(postgres.New(postgres.Config{
-				DSN:                  dsn,
-				PreferSimpleProtocol: true, // disables implicit prepared statement usage
-			}), &gorm.Config{
-				PrepareStmt: true, // precompile SQL
-			})
-			return db, common.DatabaseTypePostgreSQL, err
-		}
-		if strings.HasPrefix(dsn, "local") {
-			common.SysLog("SQL_DSN not set, using SQLite as database")
-			db, err := gorm.Open(sqlite.Open(common.SQLitePath), &gorm.Config{
-				PrepareStmt: true, // precompile SQL
-			})
-			return db, common.DatabaseTypeSQLite, err
-		}
-		// Use MySQL
-		common.SysLog("using MySQL as database")
-		// check parseTime
-		if !strings.Contains(dsn, "parseTime") {
-			if strings.Contains(dsn, "?") {
-				dsn += "&parseTime=true"
-			} else {
-				dsn += "?parseTime=true"
-			}
-		}
-		db, err := gorm.Open(mysql.Open(dsn), &gorm.Config{
+	if dsn == "" {
+		// Use SQLite
+		common.SysLog("SQL_DSN not set, using SQLite as database")
+		db, err := gorm.Open(sqlite.Open(common.SQLitePath), &gorm.Config{
 			PrepareStmt: true, // precompile SQL
 		})
-		return db, common.DatabaseTypeMySQL, err
+		return db, common.DatabaseTypeSQLite, err
 	}
-	// Use SQLite
-	common.SysLog("SQL_DSN not set, using SQLite as database")
-	db, err := gorm.Open(sqlite.Open(common.SQLitePath), &gorm.Config{
+
+	if isClickHouseDSN(dsn) {
+		return chooseClickHouse(dsn, envName, isLog)
+	}
+	if strings.HasPrefix(dsn, "postgres://") || strings.HasPrefix(dsn, "postgresql://") {
+		return choosePostgreSQL(dsn)
+	}
+	if strings.HasPrefix(dsn, "local") {
+		common.SysLog("SQL_DSN not set, using SQLite as database")
+		db, err := gorm.Open(sqlite.Open(common.SQLitePath), &gorm.Config{
+			PrepareStmt: true, // precompile SQL
+		})
+		return db, common.DatabaseTypeSQLite, err
+	}
+
+	// Use MySQL
+	return chooseMySQL(dsn)
+}
+
+func chooseClickHouse(dsn, envName string, isLog bool) (*gorm.DB, common.DatabaseType, error) {
+	if !isLog {
+		return nil, "", fmt.Errorf("%s does not support ClickHouse; use SQLite, MySQL, or PostgreSQL for the primary database and LOG_SQL_DSN for ClickHouse logs", envName)
+	}
+	common.SysLog("using ClickHouse as log database")
+	db, err := gorm.Open(clickhouse.Open(normalizeClickHouseDSN(dsn)), &gorm.Config{
+		PrepareStmt: false,
+	})
+	return db, common.DatabaseTypeClickHouse, err
+}
+
+func choosePostgreSQL(dsn string) (*gorm.DB, common.DatabaseType, error) {
+	common.SysLog("using PostgreSQL as database")
+	db, err := gorm.Open(postgres.New(postgres.Config{
+		DSN:                  dsn,
+		PreferSimpleProtocol: true, // disables implicit prepared statement usage
+	}), &gorm.Config{
 		PrepareStmt: true, // precompile SQL
 	})
-	return db, common.DatabaseTypeSQLite, err
+	return db, common.DatabaseTypePostgreSQL, err
+}
+
+func chooseMySQL(dsn string) (*gorm.DB, common.DatabaseType, error) {
+	common.SysLog("using MySQL as database")
+	if !strings.Contains(dsn, "parseTime") {
+		if strings.Contains(dsn, "?") {
+			dsn += "&parseTime=true"
+		} else {
+			dsn += "?parseTime=true"
+		}
+	}
+	db, err := gorm.Open(mysql.Open(dsn), &gorm.Config{
+		PrepareStmt: true, // precompile SQL
+	})
+	return db, common.DatabaseTypeMySQL, err
 }
 
 func InitDB() (err error) {
@@ -208,7 +220,8 @@ func InitDB() (err error) {
 			return nil
 		}
 		if common.UsingMainDatabase(common.DatabaseTypeMySQL) {
-			//_, _ = sqlDB.Exec("ALTER TABLE channels MODIFY model_mapping TEXT;") // TODO: delete this line when most users have upgraded
+			// TODO: delete this line when most users have upgraded
+			//_, _ = sqlDB.Exec("ALTER TABLE channels MODIFY model_mapping TEXT;")
 		}
 		common.SysLog("database migration started")
 		err = migrateDB()

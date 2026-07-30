@@ -43,7 +43,12 @@ func JimengRequestConvert() func(c *gin.Context) {
 
 		// Update request body
 		c.Request.Body = io.NopCloser(bytes.NewBuffer(jsonData))
-		c.Set(common.KeyRequestBody, jsonData)
+		storage, err := common.CreateBodyStorage(jsonData)
+		if err != nil {
+			abortWithOpenAiMessage(c, http.StatusInternalServerError, "Failed to create body storage")
+			return
+		}
+		c.Set(common.KeyBodyStorage, storage)
 
 		if image, ok := originalReq["image"]; !ok || image == "" {
 			c.Set("action", constant.TaskActionTextGenerate)

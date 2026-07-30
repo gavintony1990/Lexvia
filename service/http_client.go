@@ -17,7 +17,7 @@ import (
 
 var (
 	httpClient      *http.Client
-	proxyClientLock sync.Mutex
+	proxyClientLock sync.RWMutex
 	proxyClients    = make(map[string]*http.Client)
 )
 
@@ -92,12 +92,12 @@ func NewProxyHttpClient(proxyURL string) (*http.Client, error) {
 		return http.DefaultClient, nil
 	}
 
-	proxyClientLock.Lock()
+	proxyClientLock.RLock()
 	if client, ok := proxyClients[proxyURL]; ok {
-		proxyClientLock.Unlock()
+		proxyClientLock.RUnlock()
 		return client, nil
 	}
-	proxyClientLock.Unlock()
+	proxyClientLock.RUnlock()
 
 	parsedURL, err := url.Parse(proxyURL)
 	if err != nil {

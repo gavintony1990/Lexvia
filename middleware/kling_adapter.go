@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"encoding/json"
 	"io"
+	"net/http"
 
 	"github.com/QuantumNous/new-api/common"
 	"github.com/QuantumNous/new-api/constant"
@@ -46,7 +47,12 @@ func KlingRequestConvert() func(c *gin.Context) {
 		}
 
 		// We have to reset the request body for the next handlers
-		c.Set(common.KeyRequestBody, jsonData)
+		storage, err := common.CreateBodyStorage(jsonData)
+		if err != nil {
+			c.AbortWithStatusJSON(http.StatusInternalServerError, gin.H{"error": gin.H{"message": "Failed to create body storage"}})
+			return
+		}
+		c.Set(common.KeyBodyStorage, storage)
 		c.Next()
 	}
 }

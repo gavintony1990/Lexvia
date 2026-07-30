@@ -25,7 +25,8 @@ func TestResolveIncomingBillingExprRequestInput(t *testing.T) {
 
 	body := []byte(`{"service_tier":"fast"}`)
 	ctx.Request.Body = io.NopCloser(bytes.NewReader(body))
-	ctx.Set(common.KeyRequestBody, body)
+	storage, _ := common.CreateBodyStorage(body)
+	ctx.Set(common.KeyBodyStorage, storage)
 
 	info := &relaycommon.RelayInfo{
 		RequestHeaders: map[string]string{"Content-Type": "application/json"},

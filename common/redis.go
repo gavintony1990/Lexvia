@@ -78,16 +78,6 @@ func RedisGet(key string) (string, error) {
 	return val, err
 }
 
-//func RedisExpire(key string, expiration time.Duration) error {
-//	ctx := context.Background()
-//	return RDB.Expire(ctx, key, expiration).Err()
-//}
-//
-//func RedisGetEx(key string, expiration time.Duration) (string, error) {
-//	ctx := context.Background()
-//	return RDB.GetSet(ctx, key, expiration).Result()
-//}
-
 func RedisDel(key string) error {
 	if DebugEnabled {
 		SysLog(fmt.Sprintf("Redis DEL: key=%s", key))
@@ -96,12 +86,9 @@ func RedisDel(key string) error {
 	return RDB.Del(ctx, key).Err()
 }
 
+// RedisDelKey is an alias for RedisDel, kept for backward compatibility.
 func RedisDelKey(key string) error {
-	if DebugEnabled {
-		SysLog(fmt.Sprintf("Redis DEL Key: key=%s", key))
-	}
-	ctx := context.Background()
-	return RDB.Del(ctx, key).Err()
+	return RedisDel(key)
 }
 
 func RedisHSetObj(key string, obj interface{}, expiration time.Duration) error {
@@ -110,41 +97,10 @@ func RedisHSetObj(key string, obj interface{}, expiration time.Duration) error {
 	}
 	ctx := context.Background()
 
-	data := make(map[string]interface{})
-
-	// 使用反射遍历结构体字段
-	v := reflect.ValueOf(obj).Elem()
-	t := v.Type()
-	for i := 0; i < v.NumField(); i++ {
-		field := t.Field(i)
-		value := v.Field(i)
-
-		// Skip DeletedAt field
-		if field.Type.String() == "gorm.DeletedAt" {
-			continue
-		}
-
-		// 处理指针类型
-		if value.Kind() == reflect.Ptr {
-			if value.IsNil() {
-				data[field.Name] = ""
-				continue
-			}
-			value = value.Elem()
-		}
-
-		// 处理布尔类型
-		if value.Kind() == reflect.Bool {
-			data[field.Name] = strconv.FormatBool(value.Bool())
-			continue
-		}
-
-		// 其他类型直接转换为字符串
-		data[field.Name] = fmt.Sprintf("%v", value.Interface())
-	}
-
 	txn := RDB.TxPipeline()
-	txn.HSet(ctx, key, data)
+	// Use go-redis's built-in struct-to-hash field mapping
+	// This is more efficient than manual reflection
+	txn.HSet(ctx, key, obj)
 
 	// 只有在 expiration 大于 0 时才设置过期时间
 	if expiration > 0 {

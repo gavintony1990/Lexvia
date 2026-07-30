@@ -17,7 +17,6 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-const KeyRequestBody = "key_request_body"
 const KeyBodyStorage = "key_body_storage"
 
 var ErrRequestBodyTooLarge = errors.New("request body too large")
@@ -40,19 +39,6 @@ func GetRequestBody(c *gin.Context) (io.Seeker, error) {
 			if _, err := bs.Seek(0, io.SeekStart); err != nil {
 				return nil, fmt.Errorf("failed to seek body storage: %w", err)
 			}
-			return bs, nil
-		}
-	}
-
-	// 检查旧的缓存方式
-	cached, exists := c.Get(KeyRequestBody)
-	if exists && cached != nil {
-		if b, ok := cached.([]byte); ok {
-			bs, err := CreateBodyStorage(b)
-			if err != nil {
-				return nil, err
-			}
-			c.Set(KeyBodyStorage, bs)
 			return bs, nil
 		}
 	}
