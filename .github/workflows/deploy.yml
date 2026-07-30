@@ -1,0 +1,127 @@
+name: Deploy to Server
+
+on:
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: 'Tag name to deploy (e.g. v0.6.11 or latest)'
+        required: true
+        type: string
+        default: latest
+
+jobs:
+  deploy:
+    name: Build image → SCP → docker load
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+
+    env:
+      DEPLOY_TAG: ${{ github.event.inputs.tag }}
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Write VERSION
+        run: echo "${{ env.DEPLOY_TAG }}" > VERSION
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Build image on Actions
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          load: true
+          platforms: linux/amd64
+          tags: new-api:${{ env.DEPLOY_TAG }}
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+          provenance: false
+          sbom: false
+
+      - name: Save to tar
+        run: |
+          docker save new-api:${{ env.DEPLOY_TAG }} | gzip - > new-api-${{ env.DEPLOY_TAG }}.tar.gz
+          sha256sum new-api-${{ env.DEPLOY_TAG }}.tar.gz > new-api-${{ env.DEPLOY_TAG }}.tar.gz.sha256
+          echo "Size: $(du -sh new-api-${{ env.DEPLOY_TAG }}.tar.gz | cut -f1)"
+
+      - name: SCP to server
+        uses: appleboy/scp-action@v0.1.7
+        with:
+          host: ${{ secrets.SERVER_HOST }}
+          username: ${{ secrets.SERVER_USER }}
+          key: ${{ secrets.SERVER_SSH_KEY }}
+          port: ${{ secrets.SERVER_PORT || 22 }}
+          source: |
+            new-api-${{ env.DEPLOY_TAG }}.tar.gz
+            new-api-${{ env.DEPLOY_TAG }}.tar.gz.sha256
+          target: /tmp
+
+      - name: Deploy on server
+        uses: appleboy/ssh-action@v1.0.3
+        with:
+          host: ${{ secrets.SERVER_HOST }}
+          username: ${{ secrets.SERVER_USER }}
+          key: ${{ secrets.SERVER_SSH_KEY }}
+          port: ${{ secrets.SERVER_PORT || 22 }}
+          script: |
+            set -euo pipefail
+            TAG='${{ env.DEPLOY_TAG }}'
+            DEPLOY_DIR='${{ secrets.SERVER_DEPLOY_DIR }}'
+            IMAGE_NAME='${{ secrets.SERVER_IMAGE_NAME }}'
+            BACKUP_TAG="${IMAGE_NAME}-previous"
+
+            test -n "$DEPLOY_DIR" || { echo 'SERVER_DEPLOY_DIR required'; exit 1; }
+            test -n "$IMAGE_NAME"    || { echo 'SERVER_IMAGE_NAME required'; exit 1; }
+
+            # 1. 校验完整性
+            (cd /tmp && sha256sum -c "new-api-${TAG}.tar.gz.sha256")
+            rm -f /tmp/new-api-${TAG}.tar.gz.sha256
+
+            mkdir -p "$DEPLOY_DIR"
+            cd "$DEPLOY_DIR"
+
+            # 2. 备份当前运行中的镜像
+            if docker image inspect "${IMAGE_NAME}:latest" >/dev/null 2>&1; then
+              docker tag "${IMAGE_NAME}:latest" "${BACKUP_TAG}"
+            fi
+
+            # 3. 加载新镜像
+            echo "Loading image..."
+            docker load < "/tmp/new-api-${TAG}.tar.gz"
+            rm -f "/tmp/new-api-${TAG}.tar.gz"
+            docker tag "new-api:${TAG}" "${IMAGE_NAME}:${TAG}"
+            docker tag "new-api:${TAG}" "${IMAGE_NAME}:latest"
+
+            # 4. 确保 compose 指向本地镜像
+            if [ -f docker-compose.yml ]; then
+              sed -i \
+                "s|image: calciumion/new-api:latest|image: ${IMAGE_NAME}:latest|" \
+                docker-compose.yml
+            fi
+
+            # 5. 重启服务
+            docker compose down --remove-orphans
+            docker compose up -d
+            docker compose ps
+
+            # 6. 健康检查（最多 120s）
+            for i in $(seq 1 12); do
+              if curl -fsS http://localhost:3000/api/healthz | grep -q '"ok"'; then
+                echo "✅ healthcheck passed"
+                break
+              fi
+              echo "⏳ waiting ($i/12)..."
+              sleep 10
+            done
+
+            if ! curl -fsS http://localhost:3000/api/healthz | grep -q '"ok"'; then
+              echo "❌ healthcheck FAILED"
+              docker compose logs --tail=200
+              exit 2
+            fi
+
+            # 7. 清理
+            docker image prune -f
