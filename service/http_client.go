@@ -15,11 +15,33 @@ import (
 	"golang.org/x/net/proxy"
 )
 
+const proxyClientTTL = 15 * time.Minute
+
 var (
 	httpClient      *http.Client
 	proxyClientLock sync.RWMutex
 	proxyClients    = make(map[string]*http.Client)
+	proxyClientTime = make(map[string]time.Time)
 )
+
+func init() {
+	go func() {
+		for {
+			time.Sleep(5 * time.Minute)
+			proxyClientLock.Lock()
+			for url, lastUse := range proxyClientTime {
+				if time.Since(lastUse) > proxyClientTTL {
+					if transport, ok := proxyClients[url].Transport.(*http.Transport); ok && transport != nil {
+						transport.CloseIdleConnections()
+					}
+					delete(proxyClients, url)
+					delete(proxyClientTime, url)
+				}
+			}
+			proxyClientLock.Unlock()
+		}
+	}()
+}
 
 func checkRedirect(req *http.Request, via []*http.Request) error {
 	fetchSetting := system_setting.GetFetchSetting()
@@ -94,6 +116,7 @@ func NewProxyHttpClient(proxyURL string) (*http.Client, error) {
 
 	proxyClientLock.RLock()
 	if client, ok := proxyClients[proxyURL]; ok {
+		proxyClientTime[proxyURL] = time.Now()
 		proxyClientLock.RUnlock()
 		return client, nil
 	}
@@ -123,6 +146,7 @@ func NewProxyHttpClient(proxyURL string) (*http.Client, error) {
 		client.Timeout = time.Duration(common.RelayTimeout) * time.Second
 		proxyClientLock.Lock()
 		proxyClients[proxyURL] = client
+		proxyClientTime[proxyURL] = time.Now()
 		proxyClientLock.Unlock()
 		return client, nil
 
@@ -163,6 +187,7 @@ func NewProxyHttpClient(proxyURL string) (*http.Client, error) {
 		client.Timeout = time.Duration(common.RelayTimeout) * time.Second
 		proxyClientLock.Lock()
 		proxyClients[proxyURL] = client
+		proxyClientTime[proxyURL] = time.Now()
 		proxyClientLock.Unlock()
 		return client, nil
 

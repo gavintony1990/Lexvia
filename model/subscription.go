@@ -15,6 +15,8 @@ import (
 	"gorm.io/gorm"
 )
 
+var ErrNoActiveSubscription = errors.New("no active subscription")
+
 // Subscription duration units
 const (
 	SubscriptionDurationYear   = "year"
@@ -1182,10 +1184,10 @@ func PreConsumeUserSubscription(requestId string, userId int, modelName string, 
 			Where("user_id = ? AND status = ? AND end_time > ?", userId, "active", now).
 			Order("end_time asc, id asc").
 			Find(&subs).Error; err != nil {
-			return errors.New("no active subscription")
+			return ErrNoActiveSubscription
 		}
 		if len(subs) == 0 {
-			return errors.New("no active subscription")
+			return ErrNoActiveSubscription
 		}
 		for _, candidate := range subs {
 			sub := candidate

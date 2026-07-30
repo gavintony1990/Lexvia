@@ -6,6 +6,9 @@ upload
 *.exe
 *.db
 build
+dev/
+*~
+*.bak
 *.db-journal
 logs
 web/default/dist
