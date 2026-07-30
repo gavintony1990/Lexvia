@@ -397,7 +397,7 @@ func DoWssRequest(a Adaptor, c *gin.Context, info *common.RelayInfo, requestBody
 }
 
 func startPingKeepAlive(c *gin.Context, pingInterval time.Duration) context.CancelFunc {
-	pingerCtx, stopPinger := context.WithCancel(context.Background())
+	pingerCtx, stopPinger := context.WithCancel(c.Request.Context())
 
 	gopool.Go(func() {
 		defer func() {
