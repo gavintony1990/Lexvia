@@ -1,6 +1,7 @@
 package common
 
 import (
+	"context"
 	"crypto/tls"
 	//"os"
 	//"strconv"
@@ -21,8 +22,16 @@ var TopUpLink = ""
 
 var themeValue atomic.Value // stores string; safe for concurrent read/write
 
+// ShutdownCtx is cancelled when the server receives a termination signal.
+// Background goroutines should select on ShutdownCtx.Done() to exit cleanly.
+var (
+	ShutdownCtx    context.Context
+	ShutdownCancel context.CancelFunc
+)
+
 func init() {
 	themeValue.Store("classic")
+	ShutdownCtx, ShutdownCancel = context.WithCancel(context.Background())
 }
 
 func GetTheme() string {

@@ -99,9 +99,14 @@ func InitChannelCache() {
 
 func SyncChannelCache(frequency int) {
 	for {
-		time.Sleep(time.Duration(frequency) * time.Second)
-		common.SysLog("syncing channels from database")
-		InitChannelCache()
+		select {
+		case <-common.ShutdownCtx.Done():
+			common.SysLog("stopping channel cache sync")
+			return
+		case <-time.After(time.Duration(frequency) * time.Second):
+			common.SysLog("syncing channels from database")
+			InitChannelCache()
+		}
 	}
 }
 

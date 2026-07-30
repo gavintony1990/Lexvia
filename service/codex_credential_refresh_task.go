@@ -45,8 +45,14 @@ func StartCodexCredentialAutoRefreshTask() {
 			defer ticker.Stop()
 
 			runCodexCredentialAutoRefreshOnce()
-			for range ticker.C {
-				runCodexCredentialAutoRefreshOnce()
+			for {
+				select {
+				case <-common.ShutdownCtx.Done():
+					logger.LogInfo(context.Background(), "stopping codex credential auto-refresh task")
+					return
+				case <-ticker.C:
+					runCodexCredentialAutoRefreshOnce()
+				}
 			}
 		})
 	})

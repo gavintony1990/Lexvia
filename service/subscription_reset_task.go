@@ -37,8 +37,14 @@ func StartSubscriptionQuotaResetTask() {
 			defer ticker.Stop()
 
 			runSubscriptionQuotaResetOnce()
-			for range ticker.C {
-				runSubscriptionQuotaResetOnce()
+			for {
+				select {
+				case <-common.ShutdownCtx.Done():
+					logger.LogInfo(context.Background(), "stopping subscription quota reset task")
+					return
+				case <-ticker.C:
+					runSubscriptionQuotaResetOnce()
+				}
 			}
 		})
 	})

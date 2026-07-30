@@ -86,9 +86,14 @@ func StartPolicySync(frequency int) {
 		return
 	}
 	for {
-		time.Sleep(time.Duration(frequency) * time.Second)
-		if err := ReloadPolicy(); err != nil {
-			common.SysError("failed to reload authz policy: " + err.Error())
+		select {
+		case <-common.ShutdownCtx.Done():
+			common.SysLog("stopping policy sync")
+			return
+		case <-time.After(time.Duration(frequency) * time.Second):
+			if err := ReloadPolicy(); err != nil {
+				common.SysError("failed to reload authz policy: " + err.Error())
+			}
 		}
 	}
 }

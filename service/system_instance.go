@@ -69,8 +69,14 @@ func StartSystemInstanceReporter() {
 
 			ticker := time.NewTicker(systemInstanceReportInterval)
 			defer ticker.Stop()
-			for range ticker.C {
-				reportSystemInstanceWithLog()
+			for {
+				select {
+				case <-common.ShutdownCtx.Done():
+					common.SysLog("stopping system instance reporter")
+					return
+				case <-ticker.C:
+					reportSystemInstanceWithLog()
+				}
 			}
 		})
 	})

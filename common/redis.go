@@ -6,10 +6,10 @@ import (
 	"fmt"
 	"os"
 	"reflect"
-	"strconv"
 	"time"
 
 	"github.com/go-redis/redis/v8"
+	"github.com/mitchellh/mapstructure"
 	"gorm.io/gorm"
 )
 
@@ -129,69 +129,42 @@ func RedisHGetObj(key string, obj interface{}) error {
 		return fmt.Errorf("key %s not found in Redis", key)
 	}
 
-	// Handle both pointer and non-pointer values
-	val := reflect.ValueOf(obj)
-	if val.Kind() != reflect.Ptr {
-		return fmt.Errorf("obj must be a pointer to a struct, got %T", obj)
+	// Convert map[string]string to map[string]interface{} for mapstructure
+	data := make(map[string]interface{}, len(result))
+	for k, v := range result {
+		data[k] = v
 	}
 
-	v := val.Elem()
-	if v.Kind() != reflect.Struct {
-		return fmt.Errorf("obj must be a pointer to a struct, got pointer to %T", v.Interface())
+	decoder, err := mapstructure.NewDecoder(&mapstructure.DecoderConfig{
+		Result:           obj,
+		WeaklyTypedInput: true,
+		DecodeHook:       decodeDeletedAtHook,
+	})
+	if err != nil {
+		return fmt.Errorf("failed to create decoder: %w", err)
 	}
-
-	t := v.Type()
-	for i := 0; i < v.NumField(); i++ {
-		field := t.Field(i)
-		fieldName := field.Name
-		if value, ok := result[fieldName]; ok {
-			fieldValue := v.Field(i)
-
-			// Handle pointer types
-			if fieldValue.Kind() == reflect.Ptr {
-				if value == "" {
-					continue
-				}
-				if fieldValue.IsNil() {
-					fieldValue.Set(reflect.New(fieldValue.Type().Elem()))
-				}
-				fieldValue = fieldValue.Elem()
-			}
-
-			// Enhanced type handling for Token struct
-			switch fieldValue.Kind() {
-			case reflect.String:
-				fieldValue.SetString(value)
-			case reflect.Int, reflect.Int64:
-				intValue, err := strconv.ParseInt(value, 10, 64)
-				if err != nil {
-					return fmt.Errorf("failed to parse int field %s: %w", fieldName, err)
-				}
-				fieldValue.SetInt(intValue)
-			case reflect.Bool:
-				boolValue, err := strconv.ParseBool(value)
-				if err != nil {
-					return fmt.Errorf("failed to parse bool field %s: %w", fieldName, err)
-				}
-				fieldValue.SetBool(boolValue)
-			case reflect.Struct:
-				// Special handling for gorm.DeletedAt
-				if fieldValue.Type().String() == "gorm.DeletedAt" {
-					if value != "" {
-						timeValue, err := time.Parse(time.RFC3339, value)
-						if err != nil {
-							return fmt.Errorf("failed to parse DeletedAt field %s: %w", fieldName, err)
-						}
-						fieldValue.Set(reflect.ValueOf(gorm.DeletedAt{Time: timeValue, Valid: true}))
-					}
-				}
-			default:
-				return fmt.Errorf("unsupported field type: %s for field %s", fieldValue.Kind(), fieldName)
-			}
-		}
+	if err := decoder.Decode(data); err != nil {
+		return fmt.Errorf("failed to decode hash to struct: %w", err)
 	}
-
 	return nil
+}
+
+// decodeDeletedAtHook handles gorm.DeletedAt when decoding Redis hash fields.
+// HSet stores DeletedAt as a time.RFC3339 string, which mapstructure cannot
+// decode into a gorm.DeletedAt struct without this hook.
+func decodeDeletedAtHook(from reflect.Type, to reflect.Type, data interface{}) (interface{}, error) {
+	if to.String() == "gorm.DeletedAt" {
+		s, ok := data.(string)
+		if !ok || s == "" {
+			return gorm.DeletedAt{Valid: false}, nil
+		}
+		t, err := time.Parse(time.RFC3339, s)
+		if err != nil {
+			return nil, fmt.Errorf("failed to parse DeletedAt: %w", err)
+		}
+		return gorm.DeletedAt{Time: t, Valid: true}, nil
+	}
+	return data, nil
 }
 
 // RedisIncr Add this function to handle atomic increments

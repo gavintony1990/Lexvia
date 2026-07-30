@@ -44,7 +44,12 @@ func UpdateQuotaData() {
 			common.SysLog("正在更新数据看板数据...")
 			SaveQuotaDataCache()
 		}
-		time.Sleep(time.Duration(common.DataExportInterval) * time.Minute)
+		select {
+		case <-common.ShutdownCtx.Done():
+			common.SysLog("stopping quota data update")
+			return
+		case <-time.After(time.Duration(common.DataExportInterval) * time.Minute):
+		}
 	}
 }
 

@@ -48,83 +48,50 @@ import (
 	"github.com/QuantumNous/new-api/relay/channel/xunfei"
 	"github.com/QuantumNous/new-api/relay/channel/zhipu"
 	"github.com/QuantumNous/new-api/relay/channel/zhipu_4v"
+	"github.com/QuantumNous/new-api/relay/registry"
 	"github.com/gin-gonic/gin"
 )
 
+func init() {
+	registry.RegisterAdaptor(constant.APITypeAli, func() channel.Adaptor { return &ali.Adaptor{} })
+	registry.RegisterAdaptor(constant.APITypeAnthropic, func() channel.Adaptor { return &claude.Adaptor{} })
+	registry.RegisterAdaptor(constant.APITypeBaidu, func() channel.Adaptor { return &baidu.Adaptor{} })
+	registry.RegisterAdaptor(constant.APITypeGemini, func() channel.Adaptor { return &gemini.Adaptor{} })
+	registry.RegisterAdaptor(constant.APITypeOpenAI, func() channel.Adaptor { return &openai.Adaptor{} })
+	registry.RegisterAdaptor(constant.APITypePaLM, func() channel.Adaptor { return &palm.Adaptor{} })
+	registry.RegisterAdaptor(constant.APITypeTencent, func() channel.Adaptor { return &tencent.Adaptor{} })
+	registry.RegisterAdaptor(constant.APITypeXunfei, func() channel.Adaptor { return &xunfei.Adaptor{} })
+	registry.RegisterAdaptor(constant.APITypeZhipu, func() channel.Adaptor { return &zhipu.Adaptor{} })
+	registry.RegisterAdaptor(constant.APITypeZhipuV4, func() channel.Adaptor { return &zhipu_4v.Adaptor{} })
+	registry.RegisterAdaptor(constant.APITypeOllama, func() channel.Adaptor { return &ollama.Adaptor{} })
+	registry.RegisterAdaptor(constant.APITypePerplexity, func() channel.Adaptor { return &perplexity.Adaptor{} })
+	registry.RegisterAdaptor(constant.APITypeAws, func() channel.Adaptor { return &aws.Adaptor{} })
+	registry.RegisterAdaptor(constant.APITypeCohere, func() channel.Adaptor { return &cohere.Adaptor{} })
+	registry.RegisterAdaptor(constant.APITypeDify, func() channel.Adaptor { return &dify.Adaptor{} })
+	registry.RegisterAdaptor(constant.APITypeJina, func() channel.Adaptor { return &jina.Adaptor{} })
+	registry.RegisterAdaptor(constant.APITypeCloudflare, func() channel.Adaptor { return &cloudflare.Adaptor{} })
+	registry.RegisterAdaptor(constant.APITypeSiliconFlow, func() channel.Adaptor { return &siliconflow.Adaptor{} })
+	registry.RegisterAdaptor(constant.APITypeVertexAi, func() channel.Adaptor { return &vertex.Adaptor{} })
+	registry.RegisterAdaptor(constant.APITypeMistral, func() channel.Adaptor { return &mistral.Adaptor{} })
+	registry.RegisterAdaptor(constant.APITypeDeepSeek, func() channel.Adaptor { return &deepseek.Adaptor{} })
+	registry.RegisterAdaptor(constant.APITypeMokaAI, func() channel.Adaptor { return &mokaai.Adaptor{} })
+	registry.RegisterAdaptor(constant.APITypeVolcEngine, func() channel.Adaptor { return &volcengine.Adaptor{} })
+	registry.RegisterAdaptor(constant.APITypeBaiduV2, func() channel.Adaptor { return &baidu_v2.Adaptor{} })
+	registry.RegisterAdaptor(constant.APITypeOpenRouter, func() channel.Adaptor { return &openai.Adaptor{} })
+	registry.RegisterAdaptor(constant.APITypeXinference, func() channel.Adaptor { return &openai.Adaptor{} })
+	registry.RegisterAdaptor(constant.APITypeXai, func() channel.Adaptor { return &xai.Adaptor{} })
+	registry.RegisterAdaptor(constant.APITypeCoze, func() channel.Adaptor { return &coze.Adaptor{} })
+	registry.RegisterAdaptor(constant.APITypeJimeng, func() channel.Adaptor { return &jimeng.Adaptor{} })
+	registry.RegisterAdaptor(constant.APITypeMoonshot, func() channel.Adaptor { return &moonshot.Adaptor{} })
+	registry.RegisterAdaptor(constant.APITypeSubmodel, func() channel.Adaptor { return &submodel.Adaptor{} })
+	registry.RegisterAdaptor(constant.APITypeMiniMax, func() channel.Adaptor { return &minimax.Adaptor{} })
+	registry.RegisterAdaptor(constant.APITypeReplicate, func() channel.Adaptor { return &replicate.Adaptor{} })
+	registry.RegisterAdaptor(constant.APITypeCodex, func() channel.Adaptor { return &codex.Adaptor{} })
+	registry.RegisterAdaptor(constant.APITypeAdvancedCustom, func() channel.Adaptor { return &advancedcustom.Adaptor{} })
+}
+
 func GetAdaptor(apiType int) channel.Adaptor {
-	switch apiType {
-	case constant.APITypeAli:
-		return &ali.Adaptor{}
-	case constant.APITypeAnthropic:
-		return &claude.Adaptor{}
-	case constant.APITypeBaidu:
-		return &baidu.Adaptor{}
-	case constant.APITypeGemini:
-		return &gemini.Adaptor{}
-	case constant.APITypeOpenAI:
-		return &openai.Adaptor{}
-	case constant.APITypePaLM:
-		return &palm.Adaptor{}
-	case constant.APITypeTencent:
-		return &tencent.Adaptor{}
-	case constant.APITypeXunfei:
-		return &xunfei.Adaptor{}
-	case constant.APITypeZhipu:
-		return &zhipu.Adaptor{}
-	case constant.APITypeZhipuV4:
-		return &zhipu_4v.Adaptor{}
-	case constant.APITypeOllama:
-		return &ollama.Adaptor{}
-	case constant.APITypePerplexity:
-		return &perplexity.Adaptor{}
-	case constant.APITypeAws:
-		return &aws.Adaptor{}
-	case constant.APITypeCohere:
-		return &cohere.Adaptor{}
-	case constant.APITypeDify:
-		return &dify.Adaptor{}
-	case constant.APITypeJina:
-		return &jina.Adaptor{}
-	case constant.APITypeCloudflare:
-		return &cloudflare.Adaptor{}
-	case constant.APITypeSiliconFlow:
-		return &siliconflow.Adaptor{}
-	case constant.APITypeVertexAi:
-		return &vertex.Adaptor{}
-	case constant.APITypeMistral:
-		return &mistral.Adaptor{}
-	case constant.APITypeDeepSeek:
-		return &deepseek.Adaptor{}
-	case constant.APITypeMokaAI:
-		return &mokaai.Adaptor{}
-	case constant.APITypeVolcEngine:
-		return &volcengine.Adaptor{}
-	case constant.APITypeBaiduV2:
-		return &baidu_v2.Adaptor{}
-	case constant.APITypeOpenRouter:
-		return &openai.Adaptor{}
-	case constant.APITypeXinference:
-		return &openai.Adaptor{}
-	case constant.APITypeXai:
-		return &xai.Adaptor{}
-	case constant.APITypeCoze:
-		return &coze.Adaptor{}
-	case constant.APITypeJimeng:
-		return &jimeng.Adaptor{}
-	case constant.APITypeMoonshot:
-		return &moonshot.Adaptor{} // Moonshot uses Claude API
-	case constant.APITypeSubmodel:
-		return &submodel.Adaptor{}
-	case constant.APITypeMiniMax:
-		return &minimax.Adaptor{}
-	case constant.APITypeReplicate:
-		return &replicate.Adaptor{}
-	case constant.APITypeCodex:
-		return &codex.Adaptor{}
-	case constant.APITypeAdvancedCustom:
-		return &advancedcustom.Adaptor{}
-	}
-	return nil
+	return registry.GetAdaptor(apiType)
 }
 
 func GetTaskPlatform(c *gin.Context) constant.TaskPlatform {

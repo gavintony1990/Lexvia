@@ -156,6 +156,9 @@ func StartSystemTaskRunner() {
 			runPass()
 			for {
 				select {
+				case <-common.ShutdownCtx.Done():
+					logger.LogInfo(context.Background(), "stopping system task runner")
+					return
 				case <-ticker.C:
 				case <-systemTaskWakeup:
 				}

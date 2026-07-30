@@ -198,9 +198,14 @@ func loadOptionsFromDatabase() {
 
 func SyncOptions(frequency int) {
 	for {
-		time.Sleep(time.Duration(frequency) * time.Second)
-		common.SysLog("syncing options from database")
-		loadOptionsFromDatabase()
+		select {
+		case <-common.ShutdownCtx.Done():
+			common.SysLog("stopping options sync")
+			return
+		case <-time.After(time.Duration(frequency) * time.Second):
+			common.SysLog("syncing options from database")
+			loadOptionsFromDatabase()
+		}
 	}
 }
 
