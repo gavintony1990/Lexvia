@@ -23,6 +23,7 @@ import (
 )
 
 type Adaptor struct {
+	channel.BaseAdaptor
 	IsSyncImageModel bool
 }
 

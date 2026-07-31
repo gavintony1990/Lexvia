@@ -51,6 +51,7 @@ var claudeModelMap = map[string]string{
 const anthropicVersion = "vertex-2023-10-16"
 
 type Adaptor struct {
+	channel.BaseAdaptor
 	RequestMode        int
 	AccountCredentials Credentials
 }

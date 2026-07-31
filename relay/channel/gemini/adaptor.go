@@ -22,6 +22,7 @@ import (
 )
 
 type Adaptor struct {
+	channel.BaseAdaptor
 }
 
 func (a *Adaptor) ConvertGeminiRequest(c *gin.Context, info *relaycommon.RelayInfo, request *dto.GeminiChatRequest) (any, error) {
