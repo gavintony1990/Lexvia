@@ -162,7 +162,7 @@ func (r *GeminiChatRequest) SetTools(tools []GeminiChatTool) {
 type GeminiThinkingConfig struct {
 	IncludeThoughts bool `json:"includeThoughts,omitempty"`
 	ThinkingBudget  *int `json:"thinkingBudget,omitempty"`
-	// TODO Conflict with thinkingbudget.
+	// ThinkingLevel is an alternative to thinkingBudget for Gemini API.
 	ThinkingLevel string `json:"thinkingLevel,omitempty"`
 }
 
