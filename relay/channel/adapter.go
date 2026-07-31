@@ -12,24 +12,67 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
+// ── Core Adaptor (required by every provider) ─────────────────────────────
+
 type Adaptor interface {
-	// Init IsStream bool
 	Init(info *relaycommon.RelayInfo)
 	GetRequestURL(info *relaycommon.RelayInfo) (string, error)
 	SetupRequestHeader(c *gin.Context, req *http.Header, info *relaycommon.RelayInfo) error
-	ConvertOpenAIRequest(c *gin.Context, info *relaycommon.RelayInfo, request *dto.GeneralOpenAIRequest) (any, error)
-	ConvertRerankRequest(c *gin.Context, relayMode int, request dto.RerankRequest) (any, error)
-	ConvertEmbeddingRequest(c *gin.Context, info *relaycommon.RelayInfo, request dto.EmbeddingRequest) (any, error)
-	ConvertAudioRequest(c *gin.Context, info *relaycommon.RelayInfo, request dto.AudioRequest) (io.Reader, error)
-	ConvertImageRequest(c *gin.Context, info *relaycommon.RelayInfo, request dto.ImageRequest) (any, error)
-	ConvertOpenAIResponsesRequest(c *gin.Context, info *relaycommon.RelayInfo, request dto.OpenAIResponsesRequest) (any, error)
 	DoRequest(c *gin.Context, info *relaycommon.RelayInfo, requestBody io.Reader) (any, error)
 	DoResponse(c *gin.Context, resp *http.Response, info *relaycommon.RelayInfo) (usage any, err *types.NewAPIError)
 	GetModelList() []string
 	GetChannelName() string
+}
+
+// ── Optional sub-interfaces (provider implements only what it supports) ────
+
+type ChatAdaptor interface {
+	ConvertOpenAIRequest(c *gin.Context, info *relaycommon.RelayInfo, request *dto.GeneralOpenAIRequest) (any, error)
+}
+
+type ClaudeAdaptor interface {
 	ConvertClaudeRequest(c *gin.Context, info *relaycommon.RelayInfo, request *dto.ClaudeRequest) (any, error)
+}
+
+type GeminiAdaptor interface {
 	ConvertGeminiRequest(c *gin.Context, info *relaycommon.RelayInfo, request *dto.GeminiChatRequest) (any, error)
 }
+
+type ResponsesAdaptor interface {
+	ConvertOpenAIResponsesRequest(c *gin.Context, info *relaycommon.RelayInfo, request dto.OpenAIResponsesRequest) (any, error)
+}
+
+type RerankAdaptor interface {
+	ConvertRerankRequest(c *gin.Context, relayMode int, request dto.RerankRequest) (any, error)
+}
+
+type EmbeddingAdaptor interface {
+	ConvertEmbeddingRequest(c *gin.Context, info *relaycommon.RelayInfo, request dto.EmbeddingRequest) (any, error)
+}
+
+type AudioAdaptor interface {
+	ConvertAudioRequest(c *gin.Context, info *relaycommon.RelayInfo, request dto.AudioRequest) (io.Reader, error)
+}
+
+type ImageAdaptor interface {
+	ConvertImageRequest(c *gin.Context, info *relaycommon.RelayInfo, request dto.ImageRequest) (any, error)
+}
+
+// ── FullAdaptor (all methods, for backward compat) ────────────────────────
+
+type FullAdaptor interface {
+	Adaptor
+	ChatAdaptor
+	ClaudeAdaptor
+	GeminiAdaptor
+	ResponsesAdaptor
+	RerankAdaptor
+	EmbeddingAdaptor
+	AudioAdaptor
+	ImageAdaptor
+}
+
+// ── TaskAdaptor (unchanged) ────────────────────────────────────────────────
 
 type TaskAdaptor interface {
 	Init(info *relaycommon.RelayInfo)

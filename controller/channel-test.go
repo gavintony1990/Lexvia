@@ -21,6 +21,7 @@ import (
 	"github.com/QuantumNous/new-api/model"
 	"github.com/QuantumNous/new-api/pkg/billingexpr"
 	"github.com/QuantumNous/new-api/relay"
+	chn "github.com/QuantumNous/new-api/relay/channel"
 	relaycommon "github.com/QuantumNous/new-api/relay/common"
 	relayconstant "github.com/QuantumNous/new-api/relay/constant"
 	"github.com/QuantumNous/new-api/relay/helper"
@@ -310,7 +311,15 @@ func testChannel(ctx context.Context, channel *model.Channel, testUserID int, te
 	case relayconstant.RelayModeEmbeddings:
 		// Embedding 请求 - request 已经是正确的类型
 		if embeddingReq, ok := request.(*dto.EmbeddingRequest); ok {
-			convertedRequest, err = adaptor.ConvertEmbeddingRequest(c, info, *embeddingReq)
+			embAdaptor, ok := adaptor.(chn.EmbeddingAdaptor)
+		if !ok {
+			return testResult{
+				context:     c,
+				localErr:    errors.New("channel does not support embeddings"),
+				newAPIError: types.NewError(errors.New("channel does not support embeddings"), types.ErrorCodeConvertRequestFailed),
+			}
+		}
+		convertedRequest, err = embAdaptor.ConvertEmbeddingRequest(c, info, *embeddingReq)
 		} else {
 			return testResult{
 				context:     c,
@@ -321,7 +330,15 @@ func testChannel(ctx context.Context, channel *model.Channel, testUserID int, te
 	case relayconstant.RelayModeImagesGenerations:
 		// 图像生成请求 - request 已经是正确的类型
 		if imageReq, ok := request.(*dto.ImageRequest); ok {
-			convertedRequest, err = adaptor.ConvertImageRequest(c, info, *imageReq)
+			imgAdaptor, ok := adaptor.(chn.ImageAdaptor)
+		if !ok {
+			return testResult{
+				context:     c,
+				localErr:    errors.New("channel does not support image generation"),
+				newAPIError: types.NewError(errors.New("channel does not support image generation"), types.ErrorCodeConvertRequestFailed),
+			}
+		}
+		convertedRequest, err = imgAdaptor.ConvertImageRequest(c, info, *imageReq)
 		} else {
 			return testResult{
 				context:     c,
@@ -332,7 +349,15 @@ func testChannel(ctx context.Context, channel *model.Channel, testUserID int, te
 	case relayconstant.RelayModeRerank:
 		// Rerank 请求 - request 已经是正确的类型
 		if rerankReq, ok := request.(*dto.RerankRequest); ok {
-			convertedRequest, err = adaptor.ConvertRerankRequest(c, info.RelayMode, *rerankReq)
+			rerankAdaptor, ok := adaptor.(chn.RerankAdaptor)
+		if !ok {
+			return testResult{
+				context:     c,
+				localErr:    errors.New("channel does not support reranking"),
+				newAPIError: types.NewError(errors.New("channel does not support reranking"), types.ErrorCodeConvertRequestFailed),
+			}
+		}
+		convertedRequest, err = rerankAdaptor.ConvertRerankRequest(c, info.RelayMode, *rerankReq)
 		} else {
 			return testResult{
 				context:     c,
@@ -343,7 +368,15 @@ func testChannel(ctx context.Context, channel *model.Channel, testUserID int, te
 	case relayconstant.RelayModeResponses:
 		// Response 请求 - request 已经是正确的类型
 		if responseReq, ok := request.(*dto.OpenAIResponsesRequest); ok {
-			convertedRequest, err = adaptor.ConvertOpenAIResponsesRequest(c, info, *responseReq)
+			respAdaptor, ok := adaptor.(chn.ResponsesAdaptor)
+		if !ok {
+			return testResult{
+				context:     c,
+				localErr:    errors.New("channel does not support OpenAI Responses"),
+				newAPIError: types.NewError(errors.New("channel does not support OpenAI Responses"), types.ErrorCodeConvertRequestFailed),
+			}
+		}
+		convertedRequest, err = respAdaptor.ConvertOpenAIResponsesRequest(c, info, *responseReq)
 		} else {
 			return testResult{
 				context:     c,
@@ -353,16 +386,24 @@ func testChannel(ctx context.Context, channel *model.Channel, testUserID int, te
 		}
 	case relayconstant.RelayModeResponsesCompact:
 		// Response compaction request - convert to OpenAIResponsesRequest before adapting
+		respAdaptor, ok := adaptor.(chn.ResponsesAdaptor)
+		if !ok {
+			return testResult{
+				context:     c,
+				localErr:    errors.New("channel does not support OpenAI Responses"),
+				newAPIError: types.NewError(errors.New("channel does not support OpenAI Responses"), types.ErrorCodeConvertRequestFailed),
+			}
+		}
 		switch req := request.(type) {
 		case *dto.OpenAIResponsesCompactionRequest:
-			convertedRequest, err = adaptor.ConvertOpenAIResponsesRequest(c, info, dto.OpenAIResponsesRequest{
+			convertedRequest, err = respAdaptor.ConvertOpenAIResponsesRequest(c, info, dto.OpenAIResponsesRequest{
 				Model:              req.Model,
 				Input:              req.Input,
 				Instructions:       req.Instructions,
 				PreviousResponseID: req.PreviousResponseID,
 			})
 		case *dto.OpenAIResponsesRequest:
-			convertedRequest, err = adaptor.ConvertOpenAIResponsesRequest(c, info, *req)
+			convertedRequest, err = respAdaptor.ConvertOpenAIResponsesRequest(c, info, *req)
 		default:
 			return testResult{
 				context:     c,
@@ -373,7 +414,15 @@ func testChannel(ctx context.Context, channel *model.Channel, testUserID int, te
 	default:
 		// Chat/Completion 等其他请求类型
 		if generalReq, ok := request.(*dto.GeneralOpenAIRequest); ok {
-			convertedRequest, err = adaptor.ConvertOpenAIRequest(c, info, generalReq)
+			chatAdaptor, ok := adaptor.(chn.ChatAdaptor)
+		if !ok {
+			return testResult{
+				context:     c,
+				localErr:    errors.New("channel does not support chat completions"),
+				newAPIError: types.NewError(errors.New("channel does not support chat completions"), types.ErrorCodeConvertRequestFailed),
+			}
+		}
+		convertedRequest, err = chatAdaptor.ConvertOpenAIRequest(c, info, generalReq)
 		} else {
 			return testResult{
 				context:     c,

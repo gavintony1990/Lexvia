@@ -1,6 +1,7 @@
 package relay
 
 import (
+	"fmt"
 	"io"
 	"net/http"
 	"strings"
@@ -108,7 +109,11 @@ func chatCompletionsViaResponses(c *gin.Context, info *relaycommon.RelayInfo, ad
 	info.RelayMode = relayconstant.RelayModeResponses
 	info.RequestURLPath = "/v1/responses"
 
-	convertedRequest, err := adaptor.ConvertOpenAIResponsesRequest(c, info, *responsesReq)
+	responsesAdaptor, ok := adaptor.(channel.ResponsesAdaptor)
+	if !ok {
+		return nil, types.NewError(fmt.Errorf("channel does not support OpenAI Responses"), types.ErrorCodeConvertRequestFailed, types.ErrOptionWithSkipRetry())
+	}
+	convertedRequest, err := responsesAdaptor.ConvertOpenAIResponsesRequest(c, info, *responsesReq)
 	if err != nil {
 		return nil, types.NewError(err, types.ErrorCodeConvertRequestFailed, types.ErrOptionWithSkipRetry())
 	}

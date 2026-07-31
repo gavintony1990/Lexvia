@@ -9,6 +9,7 @@ import (
 	"github.com/QuantumNous/new-api/dto"
 	"github.com/QuantumNous/new-api/logger"
 	relaycommon "github.com/QuantumNous/new-api/relay/common"
+	"github.com/QuantumNous/new-api/relay/channel"
 	"github.com/QuantumNous/new-api/relay/helper"
 	"github.com/QuantumNous/new-api/service"
 	"github.com/QuantumNous/new-api/types"
@@ -40,7 +41,11 @@ func EmbeddingHelper(c *gin.Context, info *relaycommon.RelayInfo) (newAPIError *
 	}
 	adaptor.Init(info)
 
-	convertedRequest, err := adaptor.ConvertEmbeddingRequest(c, info, *request)
+	embedAdaptor, ok := adaptor.(channel.EmbeddingAdaptor)
+	if !ok {
+		return types.NewError(fmt.Errorf("channel does not support embeddings"), types.ErrorCodeConvertRequestFailed, types.ErrOptionWithSkipRetry())
+	}
+	convertedRequest, err := embedAdaptor.ConvertEmbeddingRequest(c, info, *request)
 	if err != nil {
 		return types.NewError(err, types.ErrorCodeConvertRequestFailed, types.ErrOptionWithSkipRetry())
 	}
