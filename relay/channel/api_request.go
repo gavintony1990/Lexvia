@@ -13,6 +13,7 @@ import (
 
 	common2 "github.com/QuantumNous/new-api/common"
 	"github.com/QuantumNous/new-api/logger"
+	"github.com/QuantumNous/new-api/pkg/retry"
 	"github.com/QuantumNous/new-api/relay/common"
 	"github.com/QuantumNous/new-api/relay/constant"
 	"github.com/QuantumNous/new-api/relay/helper"
@@ -484,6 +485,21 @@ func sendPingData(c *gin.Context, mutex *sync.Mutex) error {
 func DoRequest(c *gin.Context, req *http.Request, info *common.RelayInfo) (*http.Response, error) {
 	return doRequest(c, req, info)
 }
+
+// httpErrorRetryable returns true for errors that warrant a retry:
+// network errors, timeouts, connection resets, DNS failures.
+func httpErrorRetryable(err error) bool {
+	if err == nil {
+		return false
+	}
+	// Network/connection errors are retryable
+	if errors.Is(err, context.DeadlineExceeded) ||
+		errors.Is(err, context.Canceled) {
+		return false // context cancellation is not retryable
+	}
+	return true
+}
+
 func doRequest(c *gin.Context, req *http.Request, info *common.RelayInfo) (*http.Response, error) {
 	var client *http.Client
 	var err error
@@ -514,13 +530,24 @@ func doRequest(c *gin.Context, req *http.Request, info *common.RelayInfo) (*http
 		}
 	}
 
-	resp, err := client.Do(req)
+	var resp *http.Response
+	err = retry.DoWithRetry(c.Request.Context(), retry.DefaultConfig(), httpErrorRetryable, func() error {
+		resp, err = client.Do(req)
+		if err != nil {
+			return err
+		}
+		if resp == nil {
+			return errors.New("resp is nil")
+		}
+		// Non-5xx responses are not retryable
+		if resp.StatusCode >= 500 {
+			return fmt.Errorf("upstream returned %d", resp.StatusCode)
+		}
+		return nil
+	})
 	if err != nil {
 		logger.LogError(c, "do request failed: "+err.Error())
 		return nil, types.NewError(err, types.ErrorCodeDoRequestFailed, types.ErrOptionWithHideErrMsg("upstream error: do request failed"))
-	}
-	if resp == nil {
-		return nil, errors.New("resp is nil")
 	}
 
 	if upID := resp.Header.Get(common2.RequestIdKey); upID != "" {
