@@ -50,13 +50,13 @@ func (channelTestHandler) NewPayload() any { return nil }
 // notify. A manual "test all channels" trigger sets Mode=scheduled_all and
 // Notify=true to reproduce the legacy manual behavior (test every channel and
 // notify root on completion).
-type channelTestTaskPayload struct {
+type ChannelTestTaskPayload struct {
 	Mode   string `json:"mode,omitempty"`
 	Notify bool   `json:"notify,omitempty"`
 }
 
 func (channelTestHandler) Run(ctx context.Context, task *model.SystemTask, runnerID string) {
-	payload := channelTestTaskPayload{}
+	payload := ChannelTestTaskPayload{}
 	if err := task.DecodePayload(&payload); err != nil {
 		finishSystemTaskHandler(task, runnerID, model.SystemTaskStatusFailed, nil, err)
 		return
@@ -97,12 +97,12 @@ func (modelUpdateHandler) NewPayload() any { return nil }
 // "detect all" trigger sets Manual=true to reproduce the legacy detect-all
 // semantics: force a re-check regardless of the interval and never auto-apply,
 // so the admin reviews and applies changes explicitly.
-type modelUpdateTaskPayload struct {
+type ModelUpdateTaskPayload struct {
 	Manual bool `json:"manual,omitempty"`
 }
 
 func (modelUpdateHandler) Run(ctx context.Context, task *model.SystemTask, runnerID string) {
-	payload := modelUpdateTaskPayload{}
+	payload := ModelUpdateTaskPayload{}
 	if err := task.DecodePayload(&payload); err != nil {
 		finishSystemTaskHandler(task, runnerID, model.SystemTaskStatusFailed, nil, err)
 		return

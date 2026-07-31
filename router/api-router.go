@@ -3,6 +3,7 @@ package router
 import (
 	"github.com/QuantumNous/new-api/controller"
 	billing "github.com/QuantumNous/new-api/controller/billing"
+	channelctrl "github.com/QuantumNous/new-api/controller/channelctrl"
 	modelctrl "github.com/QuantumNous/new-api/controller/modelctrl"
 	relayctrl "github.com/QuantumNous/new-api/controller/relayctrl"
 	system "github.com/QuantumNous/new-api/controller/system"
@@ -193,8 +194,8 @@ func SetApiRouter(router *gin.Engine) {
 			optionRoute.GET("/", controller.GetOptions)
 			optionRoute.PUT("/", controller.UpdateOption)
 			optionRoute.POST("/payment_compliance", controller.ConfirmPaymentCompliance)
-			optionRoute.GET("/channel_affinity_cache", controller.GetChannelAffinityCacheStats)
-			optionRoute.DELETE("/channel_affinity_cache", controller.ClearChannelAffinityCache)
+	optionRoute.GET("/channel_affinity_cache", channelctrl.GetChannelAffinityCacheStats)
+	optionRoute.DELETE("/channel_affinity_cache", channelctrl.ClearChannelAffinityCache)
 			optionRoute.POST("/rest_model_ratio", billing.ResetModelRatio)
 			optionRoute.POST("/migrate_console_setting", controller.MigrateConsoleSetting) // 用于迁移检测的旧键，下个版本会删除
 			optionRoute.GET("/waffo-pancake/catalog", billing.ListWaffoPancakeCatalog)
@@ -275,7 +276,7 @@ func SetApiRouter(router *gin.Engine) {
 		logRoute.DELETE("/", middleware.RootAuth(), controller.DeleteHistoryLogs)
 		logRoute.GET("/stat", middleware.AdminAuth(), controller.GetLogsStat)
 		logRoute.GET("/self/stat", middleware.UserAuth(), controller.GetLogsSelfStat)
-		logRoute.GET("/channel_affinity_usage_cache", middleware.AdminAuth(), controller.GetChannelAffinityUsageCacheStats)
+		logRoute.GET("/channel_affinity_usage_cache", middleware.AdminAuth(), channelctrl.GetChannelAffinityUsageCacheStats)
 		logRoute.GET("/search", middleware.AdminAuth(), controller.SearchAllLogs)
 		logRoute.GET("/self", middleware.UserAuth(), controller.GetUserLogs)
 		logRoute.GET("/self/search", middleware.UserAuth(), middleware.SearchRateLimit(), controller.SearchUserLogs)

@@ -1,4 +1,4 @@
-package controller
+package channelctrl
 
 import (
 	"context"
@@ -12,6 +12,7 @@ import (
 
 	"github.com/QuantumNous/new-api/common"
 	"github.com/QuantumNous/new-api/constant"
+	"github.com/QuantumNous/new-api/controller"
 	"github.com/QuantumNous/new-api/dto"
 	"github.com/QuantumNous/new-api/model"
 	"github.com/QuantumNous/new-api/relay/channel/gemini"
@@ -322,7 +323,7 @@ func fetchChannelUpstreamModelIDs(channel *model.Channel) ([]string, error) {
 		return nil, err
 	}
 
-	body, err := GetResponseBody(http.MethodGet, url, channel, headers)
+	body, err := controller.GetResponseBody(http.MethodGet, url, channel, headers)
 	if err != nil {
 		return nil, err
 	}
@@ -736,7 +737,7 @@ func ApplyChannelUpstreamModelUpdates(c *gin.Context) {
 		refreshChannelRuntimeCache()
 	}
 
-	RecordManageAudit(c, "channel.upstream_apply", map[string]interface{}{
+	controller.RecordManageAudit(c, "channel.upstream_apply", map[string]interface{}{
 		"id": channel.Id,
 	})
 	c.JSON(http.StatusOK, gin.H{
@@ -934,7 +935,7 @@ func ApplyAllChannelUpstreamModelUpdates(c *gin.Context) {
 		refreshChannelRuntimeCache()
 	}
 
-	RecordManageAudit(c, "channel.upstream_apply_all", map[string]interface{}{
+	controller.RecordManageAudit(c, "channel.upstream_apply_all", map[string]interface{}{
 		"count": len(results),
 	})
 	c.JSON(http.StatusOK, gin.H{
@@ -957,7 +958,7 @@ func ApplyAllChannelUpstreamModelUpdates(c *gin.Context) {
 // manual run is rejected so the caller does not mistake a scheduled run for this
 // manual one.
 func DetectAllChannelUpstreamModelUpdates(c *gin.Context) {
-	task, created, err := service.EnqueueSystemTask(model.SystemTaskTypeModelUpdate, ModelUpdateTaskPayload{Manual: true})
+	task, created, err := service.EnqueueSystemTask(model.SystemTaskTypeModelUpdate, controller.ModelUpdateTaskPayload{Manual: true})
 	if err != nil {
 		common.ApiError(c, err)
 		return
@@ -975,7 +976,7 @@ func DetectAllChannelUpstreamModelUpdates(c *gin.Context) {
 		return
 	}
 
-	RecordManageAudit(c, "channel.upstream_detect_all", map[string]interface{}{
+	controller.RecordManageAudit(c, "channel.upstream_detect_all", map[string]interface{}{
 		"task_id": task.TaskID,
 	})
 	c.JSON(http.StatusOK, gin.H{

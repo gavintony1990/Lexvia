@@ -1,4 +1,4 @@
-package controller
+package channelctrl
 
 import (
 	"context"
@@ -11,6 +11,7 @@ import (
 
 	"github.com/QuantumNous/new-api/common"
 	"github.com/QuantumNous/new-api/constant"
+	"github.com/QuantumNous/new-api/controller"
 	"github.com/QuantumNous/new-api/dto"
 	"github.com/QuantumNous/new-api/i18n"
 	"github.com/QuantumNous/new-api/model"
@@ -197,9 +198,9 @@ func buildFetchModelsHeaders(channel *model.Channel, key string) (http.Header, e
 	var headers http.Header
 	switch channel.Type {
 	case constant.ChannelTypeAnthropic:
-		headers = GetClaudeAuthHeader(key)
+		headers = controller.GetClaudeAuthHeader(key)
 	default:
-		headers = GetAuthHeader(key)
+		headers = controller.GetAuthHeader(key)
 	}
 
 	headerOverride := channel.GetHeaderOverride()
@@ -431,7 +432,7 @@ func GetChannelKey(c *gin.Context) {
 	}
 
 	// 记录操作审计日志（高危：查看渠道密钥）
-	RecordManageAudit(c, "channel.key_view", map[string]interface{}{
+	controller.RecordManageAudit(c, "channel.key_view", map[string]interface{}{
 		"id":   channelId,
 		"name": channel.Name,
 	})
@@ -687,7 +688,7 @@ func AddChannel(c *gin.Context) {
 		return
 	}
 	service.ResetProxyClientCache()
-	RecordManageAudit(c, "channel.create", map[string]interface{}{
+	controller.RecordManageAudit(c, "channel.create", map[string]interface{}{
 		"name":  addChannelRequest.Channel.Name,
 		"type":  addChannelRequest.Channel.Type,
 		"count": len(channels),
@@ -712,7 +713,7 @@ func DeleteChannel(c *gin.Context) {
 		return
 	}
 	model.InitChannelCache()
-	RecordManageAudit(c, "channel.delete", map[string]interface{}{
+	controller.RecordManageAudit(c, "channel.delete", map[string]interface{}{
 		"id":   id,
 		"name": channelName,
 	})
@@ -729,10 +730,6 @@ func DeleteDisabledChannel(c *gin.Context) {
 		common.ApiError(c, err)
 		return
 	}
-	model.InitChannelCache()
-	RecordManageAudit(c, "channel.delete_disabled", map[string]interface{}{
-		"count": rows,
-	})
 	c.JSON(http.StatusOK, gin.H{
 		"success": true,
 		"message": "",
@@ -769,7 +766,7 @@ func DisableTagChannels(c *gin.Context) {
 		return
 	}
 	model.InitChannelCache()
-	RecordManageAudit(c, "channel.tag_disable", map[string]interface{}{
+	controller.RecordManageAudit(c, "channel.tag_disable", map[string]interface{}{
 		"tag": channelTag.Tag,
 	})
 	c.JSON(http.StatusOK, gin.H{
@@ -795,7 +792,7 @@ func EnableTagChannels(c *gin.Context) {
 		return
 	}
 	model.InitChannelCache()
-	RecordManageAudit(c, "channel.tag_enable", map[string]interface{}{
+	controller.RecordManageAudit(c, "channel.tag_enable", map[string]interface{}{
 		"tag": channelTag.Tag,
 	})
 	c.JSON(http.StatusOK, gin.H{
@@ -855,7 +852,7 @@ func EditTagChannels(c *gin.Context) {
 		return
 	}
 	model.InitChannelCache()
-	RecordManageAudit(c, "channel.tag_edit", map[string]interface{}{
+	controller.RecordManageAudit(c, "channel.tag_disable", map[string]interface{}{
 		"tag": channelTag.Tag,
 	})
 	c.JSON(http.StatusOK, gin.H{
@@ -886,7 +883,7 @@ func DeleteChannelBatch(c *gin.Context) {
 		return
 	}
 	model.InitChannelCache()
-	RecordManageAudit(c, "channel.delete_batch", map[string]interface{}{
+	controller.RecordManageAudit(c, "channel.delete_batch", map[string]interface{}{
 		"count": len(channelBatch.Ids),
 	})
 	c.JSON(http.StatusOK, gin.H{
@@ -1070,7 +1067,7 @@ func UpdateChannel(c *gin.Context) {
 	if channel.Key != "" && channel.Key != originChannel.Key {
 		changedFields = append(changedFields, "key")
 	}
-	RecordManageAudit(c, "channel.update", map[string]interface{}{
+	controller.RecordManageAudit(c, "channel.update", map[string]interface{}{
 		"id":             channel.Id,
 		"name":           channel.Name,
 		"changed_fields": changedFields,
@@ -1101,7 +1098,7 @@ func UpdateChannelStatus(c *gin.Context) {
 		model.InitChannelCache()
 		service.ResetProxyClientCache()
 	}
-	RecordManageAudit(c, "channel.status_update", map[string]interface{}{
+	controller.RecordManageAudit(c, "channel.status_update", map[string]interface{}{
 		"id":      id,
 		"status":  req.Status,
 		"changed": changed,
@@ -1129,7 +1126,7 @@ func BatchUpdateChannelStatus(c *gin.Context) {
 		model.InitChannelCache()
 		service.ResetProxyClientCache()
 	}
-	RecordManageAudit(c, "channel.status_update_batch", map[string]interface{}{
+	controller.RecordManageAudit(c, "channel.status_update_batch", map[string]interface{}{
 		"count":  changedCount,
 		"total":  len(req.Ids),
 		"status": req.Status,
@@ -1292,7 +1289,7 @@ func BatchSetChannelTag(c *gin.Context) {
 		return
 	}
 	model.InitChannelCache()
-	RecordManageAudit(c, "channel.tag_batch_set", map[string]interface{}{
+	controller.RecordManageAudit(c, "channel.tag_batch_set", map[string]interface{}{
 		"count": len(channelBatch.Ids),
 	})
 	c.JSON(http.StatusOK, gin.H{
@@ -1392,7 +1389,7 @@ func CopyChannel(c *gin.Context) {
 		return
 	}
 	model.InitChannelCache()
-	RecordManageAudit(c, "channel.copy", map[string]interface{}{
+	controller.RecordManageAudit(c, "channel.copy", map[string]interface{}{
 		"sourceId": id,
 		"id":       clone.Id,
 		"name":     clone.Name,
@@ -1465,9 +1462,9 @@ func ManageMultiKeys(c *gin.Context) {
 
 	// get_key_status 为只读查询，不记录审计；其余为修改操作，记录审计并跳过中间件兜底。
 	if request.Action == "get_key_status" {
-		MarkAuditLogged(c)
+		controller.MarkAuditLogged(c)
 	} else {
-		RecordManageAudit(c, "channel.multi_key_manage", map[string]interface{}{
+		controller.RecordManageAudit(c, "channel.multi_key_manage", map[string]interface{}{
 			"action": request.Action,
 			"id":     channel.Id,
 		})

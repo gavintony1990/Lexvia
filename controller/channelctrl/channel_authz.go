@@ -1,4 +1,4 @@
-package controller
+package channelctrl
 
 import "github.com/QuantumNous/new-api/model"
 
