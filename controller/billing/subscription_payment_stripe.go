@@ -1,4 +1,4 @@
-package controller
+package billing
 
 import (
 	"fmt"
@@ -114,8 +114,8 @@ func genStripeSubscriptionLink(referenceId string, customerId string, email stri
 
 	params := &stripe.CheckoutSessionParams{
 		ClientReferenceID: stripe.String(referenceId),
-		SuccessURL:        stripe.String(paymentReturnPath("/console/topup")),
-		CancelURL:         stripe.String(paymentReturnPath("/console/topup")),
+		SuccessURL:        stripe.String(PaymentReturnPath("/console/topup")),
+		CancelURL:         stripe.String(PaymentReturnPath("/console/topup")),
 		LineItems: []*stripe.CheckoutSessionLineItemParams{
 			{
 				Price:    stripe.String(priceId),

@@ -1,4 +1,4 @@
-package controller
+package billing
 
 import (
 	"github.com/QuantumNous/new-api/common"

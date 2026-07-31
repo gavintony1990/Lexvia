@@ -81,19 +81,19 @@ func auditAuthMethod(c *gin.Context) string {
 
 // markAuditLogged 标记当前请求已在 handler 内手动记录审计日志，
 // 使鉴权链路中的审计兜底（finishAdminAudit）跳过兜底记录，避免重复。
-func markAuditLogged(c *gin.Context) {
+func MarkAuditLogged(c *gin.Context) {
 	common.SetContextKey(c, constant.ContextKeyAuditLogged, true)
 }
 
 // recordManageAudit 记录一条由操作者本人归属的管理/高危审计日志（资源类操作：
 // 渠道 / 系统设置 / 兑换码等）。content 由 action+params 自动渲染。
-func recordManageAudit(c *gin.Context, action string, params map[string]interface{}) {
-	recordManageAuditFor(c, c.GetInt("id"), action, params)
+func RecordManageAudit(c *gin.Context, action string, params map[string]interface{}) {
+	RecordManageAuditFor(c, c.GetInt("id"), action, params)
 }
 
 // recordManageAuditFor 记录一条管理审计日志，日志归属于操作者；targetUserId
 // 只表示被操作用户，用于在结构化参数中保留目标上下文。
-func recordManageAuditFor(c *gin.Context, targetUserId int, action string, params map[string]interface{}) {
+func RecordManageAuditFor(c *gin.Context, targetUserId int, action string, params map[string]interface{}) {
 	if params == nil {
 		params = map[string]interface{}{}
 	}
@@ -102,11 +102,11 @@ func recordManageAuditFor(c *gin.Context, targetUserId int, action string, param
 		params["target_user_id"] = targetUserId
 	}
 	model.RecordOperationAuditLog(operatorUserId, auditContentEN(action, params), c.ClientIP(), action, params, auditOperatorInfo(c), nil)
-	markAuditLogged(c)
+MarkAuditLogged(c)
 }
 
 // recordUserSecurityAudit 记录普通用户自己的安全敏感操作（如 passkey 绑定/解绑）。
 // 这类日志没有管理员操作者，不写 admin_info；同时不依赖 AdminAuth/RootAuth 的兜底。
-func recordUserSecurityAudit(c *gin.Context, userId int, action string, params map[string]interface{}) {
+func RecordUserSecurityAudit(c *gin.Context, userId int, action string, params map[string]interface{}) {
 	model.RecordOperationAuditLog(userId, auditContentEN(action, params), c.ClientIP(), action, params, nil, nil)
 }
