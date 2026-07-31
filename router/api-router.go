@@ -3,6 +3,7 @@ package router
 import (
 	"github.com/QuantumNous/new-api/controller"
 	billing "github.com/QuantumNous/new-api/controller/billing"
+	system "github.com/QuantumNous/new-api/controller/system"
 	"github.com/QuantumNous/new-api/middleware"
 
 	// Import oauth package to register providers via init()
@@ -20,12 +21,12 @@ func SetApiRouter(router *gin.Engine) {
 	apiRouter.Use(middleware.GlobalAPIRateLimit())
 	anonymousRequestBodyLimit := middleware.AnonymousRequestBodyLimit()
 	{
-		apiRouter.GET("/setup", controller.GetSetup)
-		apiRouter.POST("/setup", anonymousRequestBodyLimit, controller.PostSetup)
+		apiRouter.GET("/setup", system.GetSetup)
+		apiRouter.POST("/setup", anonymousRequestBodyLimit, system.PostSetup)
 		apiRouter.GET("/status", controller.GetStatus)
-		apiRouter.GET("/healthz", controller.GetHealthz)
-		apiRouter.GET("/readyz", controller.GetReadyz)
-		apiRouter.GET("/uptime/status", controller.GetUptimeKumaStatus)
+		apiRouter.GET("/healthz", system.GetHealthz)
+		apiRouter.GET("/readyz", system.GetReadyz)
+		apiRouter.GET("/uptime/status", system.GetUptimeKumaStatus)
 		apiRouter.GET("/models", middleware.UserAuth(), controller.DashboardListModels)
 		apiRouter.GET("/status/test", middleware.AdminAuth(), controller.TestStatus)
 		apiRouter.GET("/notice", controller.GetNotice)
@@ -280,15 +281,15 @@ func SetApiRouter(router *gin.Engine) {
 		systemTaskRoute := apiRouter.Group("/system-task")
 		systemTaskRoute.Use(middleware.RootAuth())
 		{
-			systemTaskRoute.POST("/log-cleanup", controller.CreateLogCleanupSystemTask)
-			systemTaskRoute.GET("/list", controller.ListSystemTasks)
-			systemTaskRoute.GET("/current", controller.GetCurrentSystemTask)
-			systemTaskRoute.GET("/:task_id", controller.GetSystemTask)
+			systemTaskRoute.POST("/log-cleanup", system.CreateLogCleanupSystemTask)
+			systemTaskRoute.GET("/list", system.ListSystemTasks)
+			systemTaskRoute.GET("/current", system.GetCurrentSystemTask)
+			systemTaskRoute.GET("/:task_id", system.GetSystemTask)
 		}
 		systemInfoRoute := apiRouter.Group("/system-info")
 		systemInfoRoute.Use(middleware.RootAuth())
 		{
-			systemInfoRoute.GET("/instances", controller.ListSystemInstances)
+			systemInfoRoute.GET("/instances", system.ListSystemInstances)
 		}
 
 		dataRoute := apiRouter.Group("/data")
