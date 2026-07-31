@@ -100,15 +100,23 @@ func cohereStreamHandler(c *gin.Context, info *relaycommon.RelayInfo, resp *http
 	})
 	dataChan := make(chan string)
 	stopChan := make(chan bool)
+	ctx := c.Request.Context()
 	go func() {
 		for scanner.Scan() {
 			data := scanner.Text()
-			dataChan <- data
+			select {
+			case dataChan <- data:
+			case <-ctx.Done():
+				return
+			}
 		}
 		if err := scanner.Err(); err != nil {
 			common.SysLog("error reading stream: " + err.Error())
 		}
-		stopChan <- true
+		select {
+		case stopChan <- true:
+		case <-ctx.Done():
+		}
 	}()
 	helper.SetEventStreamHeaders(c)
 	isFirst := true
