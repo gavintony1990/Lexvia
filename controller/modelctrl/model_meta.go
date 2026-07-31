@@ -1,4 +1,4 @@
-package controller
+﻿package modelctrl
 
 import (
 	"encoding/json"

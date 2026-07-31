@@ -3,6 +3,8 @@ package router
 import (
 	"github.com/QuantumNous/new-api/controller"
 	billing "github.com/QuantumNous/new-api/controller/billing"
+	modelctrl "github.com/QuantumNous/new-api/controller/modelctrl"
+	relayctrl "github.com/QuantumNous/new-api/controller/relayctrl"
 	system "github.com/QuantumNous/new-api/controller/system"
 	"github.com/QuantumNous/new-api/middleware"
 
@@ -27,7 +29,7 @@ func SetApiRouter(router *gin.Engine) {
 		apiRouter.GET("/healthz", system.GetHealthz)
 		apiRouter.GET("/readyz", system.GetReadyz)
 		apiRouter.GET("/uptime/status", system.GetUptimeKumaStatus)
-		apiRouter.GET("/models", middleware.UserAuth(), controller.DashboardListModels)
+		apiRouter.GET("/models", middleware.UserAuth(), modelctrl.DashboardListModels)
 		apiRouter.GET("/status/test", middleware.AdminAuth(), controller.TestStatus)
 		apiRouter.GET("/notice", controller.GetNotice)
 		apiRouter.GET("/user-agreement", controller.GetUserAgreement)
@@ -324,59 +326,59 @@ func SetApiRouter(router *gin.Engine) {
 
 		taskRoute := apiRouter.Group("/task")
 		{
-			taskRoute.GET("/self", middleware.UserAuth(), controller.GetUserTask)
-			taskRoute.GET("/", middleware.AdminAuth(), controller.GetAllTask)
+			taskRoute.GET("/self", middleware.UserAuth(), relayctrl.GetUserTask)
+			taskRoute.GET("/", middleware.AdminAuth(), relayctrl.GetAllTask)
 		}
 
 		vendorRoute := apiRouter.Group("/vendors")
 		vendorRoute.Use(middleware.AdminAuth())
 		{
-			vendorRoute.GET("/", controller.GetAllVendors)
-			vendorRoute.GET("/search", controller.SearchVendors)
-			vendorRoute.GET("/:id", controller.GetVendorMeta)
-			vendorRoute.POST("/", controller.CreateVendorMeta)
-			vendorRoute.PUT("/", controller.UpdateVendorMeta)
-			vendorRoute.DELETE("/:id", controller.DeleteVendorMeta)
+			vendorRoute.GET("/", modelctrl.GetAllVendors)
+			vendorRoute.GET("/search", modelctrl.SearchVendors)
+			vendorRoute.GET("/:id", modelctrl.GetVendorMeta)
+			vendorRoute.POST("/", modelctrl.CreateVendorMeta)
+			vendorRoute.PUT("/", modelctrl.UpdateVendorMeta)
+			vendorRoute.DELETE("/:id", modelctrl.DeleteVendorMeta)
 		}
 
 		modelsRoute := apiRouter.Group("/models")
 		modelsRoute.Use(middleware.AdminAuth())
 		{
-			modelsRoute.GET("/sync_upstream/preview", controller.SyncUpstreamPreview)
-			modelsRoute.POST("/sync_upstream", controller.SyncUpstreamModels)
-			modelsRoute.GET("/missing", controller.GetMissingModels)
-			modelsRoute.GET("/", controller.GetAllModelsMeta)
-			modelsRoute.GET("/search", controller.SearchModelsMeta)
-			modelsRoute.GET("/:id", controller.GetModelMeta)
-			modelsRoute.POST("/", controller.CreateModelMeta)
-			modelsRoute.PUT("/", controller.UpdateModelMeta)
-			modelsRoute.DELETE("/:id", controller.DeleteModelMeta)
+			modelsRoute.GET("/sync_upstream/preview", modelctrl.SyncUpstreamPreview)
+			modelsRoute.POST("/sync_upstream", modelctrl.SyncUpstreamModels)
+			modelsRoute.GET("/missing", modelctrl.GetMissingModels)
+			modelsRoute.GET("/", modelctrl.GetAllModelsMeta)
+			modelsRoute.GET("/search", modelctrl.SearchModelsMeta)
+			modelsRoute.GET("/:id", modelctrl.GetModelMeta)
+			modelsRoute.POST("/", modelctrl.CreateModelMeta)
+			modelsRoute.PUT("/", modelctrl.UpdateModelMeta)
+			modelsRoute.DELETE("/:id", modelctrl.DeleteModelMeta)
 		}
 
 		// Deployments (model deployment management)
 		deploymentsRoute := apiRouter.Group("/deployments")
 		deploymentsRoute.Use(middleware.AdminAuth())
 		{
-			deploymentsRoute.GET("/settings", controller.GetModelDeploymentSettings)
-			deploymentsRoute.POST("/settings/test-connection", controller.TestIoNetConnection)
-			deploymentsRoute.GET("/", controller.GetAllDeployments)
-			deploymentsRoute.GET("/search", controller.SearchDeployments)
-			deploymentsRoute.POST("/test-connection", controller.TestIoNetConnection)
-			deploymentsRoute.GET("/hardware-types", controller.GetHardwareTypes)
-			deploymentsRoute.GET("/locations", controller.GetLocations)
-			deploymentsRoute.GET("/available-replicas", controller.GetAvailableReplicas)
-			deploymentsRoute.POST("/price-estimation", controller.GetPriceEstimation)
-			deploymentsRoute.GET("/check-name", controller.CheckClusterNameAvailability)
-			deploymentsRoute.POST("/", controller.CreateDeployment)
+		deploymentsRoute.GET("/settings", controller.GetModelDeploymentSettings)
+		deploymentsRoute.POST("/settings/test-connection", controller.TestIoNetConnection)
+		deploymentsRoute.GET("/", controller.GetAllDeployments)
+		deploymentsRoute.GET("/search", controller.SearchDeployments)
+		deploymentsRoute.POST("/test-connection", controller.TestIoNetConnection)
+		deploymentsRoute.GET("/hardware-types", controller.GetHardwareTypes)
+		deploymentsRoute.GET("/locations", controller.GetLocations)
+		deploymentsRoute.GET("/available-replicas", controller.GetAvailableReplicas)
+		deploymentsRoute.POST("/price-estimation", controller.GetPriceEstimation)
+		deploymentsRoute.GET("/check-name", controller.CheckClusterNameAvailability)
+		deploymentsRoute.POST("/", controller.CreateDeployment)
 
-			deploymentsRoute.GET("/:id", controller.GetDeployment)
-			deploymentsRoute.GET("/:id/logs", controller.GetDeploymentLogs)
-			deploymentsRoute.GET("/:id/containers", controller.ListDeploymentContainers)
-			deploymentsRoute.GET("/:id/containers/:container_id", controller.GetContainerDetails)
-			deploymentsRoute.PUT("/:id", controller.UpdateDeployment)
-			deploymentsRoute.PUT("/:id/name", controller.UpdateDeploymentName)
-			deploymentsRoute.POST("/:id/extend", controller.ExtendDeployment)
-			deploymentsRoute.DELETE("/:id", controller.DeleteDeployment)
+		deploymentsRoute.GET("/:id", controller.GetDeployment)
+		deploymentsRoute.GET("/:id/logs", controller.GetDeploymentLogs)
+		deploymentsRoute.GET("/:id/containers", controller.ListDeploymentContainers)
+		deploymentsRoute.GET("/:id/containers/:container_id", controller.GetContainerDetails)
+		deploymentsRoute.PUT("/:id", controller.UpdateDeployment)
+		deploymentsRoute.PUT("/:id/name", controller.UpdateDeploymentName)
+		deploymentsRoute.POST("/:id/extend", controller.ExtendDeployment)
+		deploymentsRoute.DELETE("/:id", controller.DeleteDeployment)
 		}
 	}
 }

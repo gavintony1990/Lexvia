@@ -1,4 +1,4 @@
-package controller
+﻿package modelctrl
 
 import (
 	"fmt"
@@ -362,3 +362,4 @@ func RetrieveModel(c *gin.Context, modelType int) {
 		})
 	}
 }
+
