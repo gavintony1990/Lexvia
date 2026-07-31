@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"io"
 	"log"
+	"log/slog"
 	"os"
 	"path/filepath"
 	"sync"
@@ -32,6 +33,10 @@ var setupLogWorking bool
 var currentLogPath string
 var currentLogPathMu sync.RWMutex
 var currentLogFile *os.File
+
+// Slog is the structured logger used by the application.
+// It writes to the same output as the legacy logger.
+var Slog = slog.Default()
 
 func GetCurrentLogPath() string {
 	currentLogPathMu.RLock()
@@ -170,6 +175,49 @@ func FormatQuota(quota int) string {
 	default:
 		return fmt.Sprintf("＄%.6f", q/common.QuotaPerUnit)
 	}
+}
+
+// SlogInfo logs a structured info message with key-value pairs.
+func SlogInfo(ctx context.Context, msg string, attrs ...any) {
+	if ctx != nil {
+		if requestID := ctx.Value(common.RequestIdKey); requestID != nil {
+			attrs = append(attrs, "request_id", requestID)
+		}
+	}
+	Slog.Info(msg, attrs...)
+}
+
+// SlogError logs a structured error message with key-value pairs.
+func SlogError(ctx context.Context, msg string, attrs ...any) {
+	if ctx != nil {
+		if requestID := ctx.Value(common.RequestIdKey); requestID != nil {
+			attrs = append(attrs, "request_id", requestID)
+		}
+	}
+	Slog.Error(msg, attrs...)
+}
+
+// SlogWarn logs a structured warning message with key-value pairs.
+func SlogWarn(ctx context.Context, msg string, attrs ...any) {
+	if ctx != nil {
+		if requestID := ctx.Value(common.RequestIdKey); requestID != nil {
+			attrs = append(attrs, "request_id", requestID)
+		}
+	}
+	Slog.Warn(msg, attrs...)
+}
+
+// SlogDebug logs a structured debug message with key-value pairs.
+func SlogDebug(ctx context.Context, msg string, attrs ...any) {
+	if !common.DebugEnabled {
+		return
+	}
+	if ctx != nil {
+		if requestID := ctx.Value(common.RequestIdKey); requestID != nil {
+			attrs = append(attrs, "request_id", requestID)
+		}
+	}
+	Slog.Debug(msg, attrs...)
 }
 
 // LogJson 仅供测试使用 only for test
