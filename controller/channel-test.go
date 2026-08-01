@@ -25,6 +25,7 @@ import (
 	relaycommon "github.com/gavintony1990/Lexvia/relay/common"
 	relayconstant "github.com/gavintony1990/Lexvia/relay/constant"
 	"github.com/gavintony1990/Lexvia/relay/helper"
+	notifySvc "github.com/gavintony1990/Lexvia/service/notify"
 	"github.com/gavintony1990/Lexvia/service"
 	"github.com/gavintony1990/Lexvia/setting/operation_setting"
 	"github.com/gavintony1990/Lexvia/setting/ratio_setting"
@@ -1059,7 +1060,7 @@ func runChannelTestTask(ctx context.Context, mode string, notify bool, report fu
 	allowDisable := mode != operation_setting.ChannelTestModePassiveRecovery
 	summary := performChannelTests(ctx, selected, testUserID, allowDisable, report)
 	if notify && (ctx == nil || ctx.Err() == nil) {
-		service.NotifyRootUser(dto.NotifyTypeChannelTest, "通道测试完成", "所有通道测试已完成")
+		notifySvc.NotifyRootUser(dto.NotifyTypeChannelTest, "通道测试完成", "所有通道测试已完成")
 	}
 	return summary, nil
 }

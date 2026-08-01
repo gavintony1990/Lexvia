@@ -7,6 +7,7 @@ import (
 	"github.com/gavintony1990/Lexvia/common"
 	"github.com/gavintony1990/Lexvia/dto"
 	"github.com/gavintony1990/Lexvia/model"
+	notify "github.com/gavintony1990/Lexvia/service/notify"
 	"github.com/gavintony1990/Lexvia/setting/operation_setting"
 	"github.com/gavintony1990/Lexvia/types"
 )
@@ -29,7 +30,7 @@ func DisableChannel(channelError types.ChannelError, reason string) {
 	if success {
 		subject := fmt.Sprintf("通道「%s」（#%d）已被禁用", channelError.ChannelName, channelError.ChannelId)
 		content := fmt.Sprintf("通道「%s」（#%d）已被禁用，原因：%s", channelError.ChannelName, channelError.ChannelId, reason)
-		NotifyRootUser(formatNotifyType(channelError.ChannelId, common.ChannelStatusAutoDisabled), subject, content)
+		notify.NotifyRootUser(formatNotifyType(channelError.ChannelId, common.ChannelStatusAutoDisabled), subject, content)
 	}
 }
 
@@ -38,7 +39,7 @@ func EnableChannel(channelId int, usingKey string, channelName string) {
 	if success {
 		subject := fmt.Sprintf("通道「%s」（#%d）已被启用", channelName, channelId)
 		content := fmt.Sprintf("通道「%s」（#%d）已被启用", channelName, channelId)
-		NotifyRootUser(formatNotifyType(channelId, common.ChannelStatusEnabled), subject, content)
+		notify.NotifyRootUser(formatNotifyType(channelId, common.ChannelStatusEnabled), subject, content)
 	}
 }
 

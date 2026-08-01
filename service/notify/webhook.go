@@ -1,4 +1,4 @@
-package service
+package notify
 
 import (
 	"bytes"
@@ -12,6 +12,7 @@ import (
 
 	"github.com/gavintony1990/Lexvia/common"
 	"github.com/gavintony1990/Lexvia/dto"
+	"github.com/gavintony1990/Lexvia/service/httputil"
 	"github.com/gavintony1990/Lexvia/setting/system_setting"
 )
 
@@ -60,7 +61,7 @@ func SendWebhookNotify(webhookURL string, secret string, data dto.Notify) error 
 
 	if system_setting.EnableWorker() {
 		// 构建worker请求数据
-		workerReq := &WorkerRequest{
+		workerReq := &httputil.WorkerRequest{
 			URL:    webhookURL,
 			Key:    system_setting.WorkerValidKey,
 			Method: http.MethodPost,
@@ -77,7 +78,7 @@ func SendWebhookNotify(webhookURL string, secret string, data dto.Notify) error 
 			workerReq.Headers["Authorization"] = "Bearer " + secret
 		}
 
-		resp, err = DoWorkerRequest(workerReq)
+		resp, err = httputil.DoWorkerRequest(workerReq)
 		if err != nil {
 			return fmt.Errorf("failed to send webhook request through worker: %v", err)
 		}
@@ -109,7 +110,7 @@ func SendWebhookNotify(webhookURL string, secret string, data dto.Notify) error 
 		}
 
 		// 发送请求
-		client := GetHttpClient()
+		client := httputil.GetHttpClient()
 		resp, err = client.Do(req)
 		if err != nil {
 			return fmt.Errorf("failed to send webhook request: %v", err)

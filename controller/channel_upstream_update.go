@@ -17,6 +17,7 @@ import (
 	"github.com/gavintony1990/Lexvia/relay/channel/gemini"
 	"github.com/gavintony1990/Lexvia/relay/channel/ollama"
 	"github.com/gavintony1990/Lexvia/service/httputil"
+	notify "github.com/gavintony1990/Lexvia/service/notify"
 	"github.com/gavintony1990/Lexvia/service"
 
 	"github.com/gin-gonic/gin"
@@ -682,7 +683,7 @@ scanLoop:
 			))
 			return summary
 		}
-		service.NotifyUpstreamModelUpdateWatchers(
+		notify.NotifyUpstreamModelUpdateWatchers(
 			"上游模型巡检通知",
 			buildUpstreamModelUpdateTaskNotificationContent(
 				checkedChannels,

@@ -1,4 +1,4 @@
-package service
+package notify
 
 import (
 	"bytes"
@@ -11,6 +11,7 @@ import (
 	"github.com/gavintony1990/Lexvia/common"
 	"github.com/gavintony1990/Lexvia/dto"
 	"github.com/gavintony1990/Lexvia/model"
+	"github.com/gavintony1990/Lexvia/service/httputil"
 	"github.com/gavintony1990/Lexvia/setting/system_setting"
 )
 
@@ -133,7 +134,7 @@ func sendBarkNotify(barkURL string, data dto.Notify) error {
 
 	if system_setting.EnableWorker() {
 		// 使用worker发送请求
-		workerReq := &WorkerRequest{
+		workerReq := &httputil.WorkerRequest{
 			URL:    finalURL,
 			Key:    system_setting.WorkerValidKey,
 			Method: http.MethodGet,
@@ -142,7 +143,7 @@ func sendBarkNotify(barkURL string, data dto.Notify) error {
 			},
 		}
 
-		resp, err = DoWorkerRequest(workerReq)
+		resp, err = httputil.DoWorkerRequest(workerReq)
 		if err != nil {
 			return fmt.Errorf("failed to send bark request through worker: %v", err)
 		}
@@ -169,7 +170,7 @@ func sendBarkNotify(barkURL string, data dto.Notify) error {
 		req.Header.Set("User-Agent", "OneAPI-Bark-Notify/1.0")
 
 		// 发送请求
-		client := GetHttpClient()
+		client := httputil.GetHttpClient()
 		resp, err = client.Do(req)
 		if err != nil {
 			return fmt.Errorf("failed to send bark request: %v", err)
@@ -225,7 +226,7 @@ func sendGotifyNotify(gotifyUrl string, gotifyToken string, priority int, data d
 
 	if system_setting.EnableWorker() {
 		// 使用worker发送请求
-		workerReq := &WorkerRequest{
+		workerReq := &httputil.WorkerRequest{
 			URL:    finalURL,
 			Key:    system_setting.WorkerValidKey,
 			Method: http.MethodPost,
@@ -236,7 +237,7 @@ func sendGotifyNotify(gotifyUrl string, gotifyToken string, priority int, data d
 			Body: payloadBytes,
 		}
 
-		resp, err = DoWorkerRequest(workerReq)
+		resp, err = httputil.DoWorkerRequest(workerReq)
 		if err != nil {
 			return fmt.Errorf("failed to send gotify request through worker: %v", err)
 		}
@@ -264,7 +265,7 @@ func sendGotifyNotify(gotifyUrl string, gotifyToken string, priority int, data d
 		req.Header.Set("User-Agent", "NewAPI-Gotify-Notify/1.0")
 
 		// 发送请求
-		client := GetHttpClient()
+		client := httputil.GetHttpClient()
 		resp, err = client.Do(req)
 		if err != nil {
 			return fmt.Errorf("failed to send gotify request: %v", err)

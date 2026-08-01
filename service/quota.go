@@ -12,6 +12,7 @@ import (
 	"github.com/gavintony1990/Lexvia/dto"
 	"github.com/gavintony1990/Lexvia/logger"
 	"github.com/gavintony1990/Lexvia/model"
+	notify "github.com/gavintony1990/Lexvia/service/notify"
 	"github.com/gavintony1990/Lexvia/pkg/billingexpr"
 	perfmetrics "github.com/gavintony1990/Lexvia/pkg/perf_metrics"
 	relaycommon "github.com/gavintony1990/Lexvia/relay/common"
@@ -489,7 +490,7 @@ func checkAndSendQuotaNotify(relayInfo *relaycommon.RelayInfo, quota int, preCon
 				values = []interface{}{prompt, logger.FormatQuota(relayInfo.UserQuota), topUpLink, topUpLink}
 			}
 
-			err := NotifyUser(relayInfo.UserId, relayInfo.UserEmail, relayInfo.UserSetting, dto.NewNotify(dto.NotifyTypeQuotaExceed, prompt, content, values))
+			err := notify.NotifyUser(relayInfo.UserId, relayInfo.UserEmail, relayInfo.UserSetting, dto.NewNotify(dto.NotifyTypeQuotaExceed, prompt, content, values))
 			if err != nil {
 				common.SysError(fmt.Sprintf("failed to send quota notify to user %d: %s", relayInfo.UserId, err.Error()))
 			}
@@ -539,7 +540,7 @@ func checkAndSendSubscriptionQuotaNotify(relayInfo *relaycommon.RelayInfo) {
 			values = []interface{}{prompt, logger.FormatQuota(int(remaining)), topUpLink, topUpLink}
 		}
 
-		if err := NotifyUser(relayInfo.UserId, relayInfo.UserEmail, relayInfo.UserSetting, dto.NewNotify(dto.NotifyTypeQuotaExceed, prompt, content, values)); err != nil {
+		if err := notify.NotifyUser(relayInfo.UserId, relayInfo.UserEmail, relayInfo.UserSetting, dto.NewNotify(dto.NotifyTypeQuotaExceed, prompt, content, values)); err != nil {
 			common.SysError(fmt.Sprintf("failed to send subscription quota notify to user %d: %s", relayInfo.UserId, err.Error()))
 		}
 	})
