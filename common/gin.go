@@ -19,6 +19,10 @@ import (
 
 const KeyBodyStorage = "key_body_storage"
 
+// KeyRequestBody is the old key name for request body storage, replaced by KeyBodyStorage.
+// Deprecated: use KeyBodyStorage instead.
+const KeyRequestBody = KeyBodyStorage
+
 var ErrRequestBodyTooLarge = errors.New("request body too large")
 
 func IsRequestBodyTooLargeError(err error) bool {
