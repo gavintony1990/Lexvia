@@ -14,7 +14,7 @@ import (
 	"github.com/gavintony1990/Lexvia/constant"
 	"github.com/gavintony1990/Lexvia/logger"
 	"github.com/gavintony1990/Lexvia/model"
-	"github.com/gavintony1990/Lexvia/service"
+	"github.com/gavintony1990/Lexvia/service/httputil"
 	"github.com/gavintony1990/Lexvia/setting/system_setting"
 
 	"github.com/gin-gonic/gin"
@@ -68,7 +68,7 @@ func VideoProxy(c *gin.Context) {
 
 	var videoURL string
 	proxy := channel.GetSetting().Proxy
-	client, err := service.GetHttpClientWithProxy(proxy)
+	client, err := httputil.GetHttpClientWithProxy(proxy)
 	if err != nil {
 		logger.LogError(c.Request.Context(), fmt.Sprintf("Failed to create proxy client for task %s: %s", taskID, err.Error()))
 		videoProxyError(c, http.StatusInternalServerError, "server_error", "Failed to create proxy client")

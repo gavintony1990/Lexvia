@@ -12,6 +12,7 @@ import (
 	"github.com/gavintony1990/Lexvia/dto"
 	"github.com/gavintony1990/Lexvia/logger"
 	"github.com/gavintony1990/Lexvia/model"
+	"github.com/gavintony1990/Lexvia/service/httputil"
 	"github.com/gavintony1990/Lexvia/service"
 	"github.com/gavintony1990/Lexvia/setting"
 	"github.com/gavintony1990/Lexvia/setting/system_setting"
@@ -119,7 +120,7 @@ func runMidjourneyTaskUpdateOnce(ctx context.Context, report func(processed, tot
 		}
 		req.Header.Set("Content-Type", "application/json")
 		req.Header.Set("mj-api-secret", midjourneyChannel.Key)
-		resp, err := service.GetHttpClient().Do(req)
+		resp, err := httputil.GetHttpClient().Do(req)
 		if err != nil {
 			logger.LogError(ctx, fmt.Sprintf("Get Task Do req error: %v", err))
 			cancel()

@@ -19,6 +19,7 @@ import (
 	"github.com/gavintony1990/Lexvia/relay/channel/openai"
 	relaycommon "github.com/gavintony1990/Lexvia/relay/common"
 	"github.com/gavintony1990/Lexvia/relay/helper"
+	"github.com/gavintony1990/Lexvia/service/httputil"
 	"github.com/gavintony1990/Lexvia/service"
 	"github.com/gavintony1990/Lexvia/setting/model_setting"
 	"github.com/gavintony1990/Lexvia/setting/reasoning"
@@ -1506,7 +1507,7 @@ func GeminiChatHandler(c *gin.Context, info *relaycommon.RelayInfo, resp *http.R
 	if err != nil {
 		return nil, types.NewOpenAIError(err, types.ErrorCodeBadResponseBody, http.StatusInternalServerError)
 	}
-	service.CloseResponseBodyGracefully(resp)
+	httputil.CloseResponseBodyGracefully(resp)
 	logger.LogDebug(c, "Gemini response body: %s", responseBody)
 	var geminiResponse dto.GeminiChatResponse
 	err = common.Unmarshal(responseBody, &geminiResponse)
@@ -1571,13 +1572,13 @@ func GeminiChatHandler(c *gin.Context, info *relaycommon.RelayInfo, resp *http.R
 		break
 	}
 
-	service.IOCopyBytesGracefully(c, resp, responseBody)
+	httputil.IOCopyBytesGracefully(c, resp, responseBody)
 
 	return &usage, nil
 }
 
 func GeminiEmbeddingHandler(c *gin.Context, info *relaycommon.RelayInfo, resp *http.Response) (*dto.Usage, *types.NewAPIError) {
-	defer service.CloseResponseBodyGracefully(resp)
+	defer httputil.CloseResponseBodyGracefully(resp)
 
 	responseBody, readErr := io.ReadAll(resp.Body)
 	if readErr != nil {
@@ -1617,7 +1618,7 @@ func GeminiEmbeddingHandler(c *gin.Context, info *relaycommon.RelayInfo, resp *h
 		return nil, types.NewOpenAIError(jsonErr, types.ErrorCodeBadResponseBody, http.StatusInternalServerError)
 	}
 
-	service.IOCopyBytesGracefully(c, resp, jsonResponse)
+	httputil.IOCopyBytesGracefully(c, resp, jsonResponse)
 	return usage, nil
 }
 
@@ -1681,7 +1682,7 @@ type GeminiModelsResponse struct {
 }
 
 func FetchGeminiModels(baseURL, apiKey, proxyURL string) ([]string, error) {
-	client, err := service.GetHttpClientWithProxy(proxyURL)
+	client, err := httputil.GetHttpClientWithProxy(proxyURL)
 	if err != nil {
 		return nil, fmt.Errorf("创建HTTP客户端失败: %v", err)
 	}

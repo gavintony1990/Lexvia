@@ -11,6 +11,7 @@ import (
 	"github.com/gavintony1990/Lexvia/logger"
 	relaycommon "github.com/gavintony1990/Lexvia/relay/common"
 	"github.com/gavintony1990/Lexvia/relay/helper"
+	"github.com/gavintony1990/Lexvia/service/httputil"
 	"github.com/gavintony1990/Lexvia/service"
 	"github.com/gavintony1990/Lexvia/types"
 
@@ -18,7 +19,7 @@ import (
 )
 
 func GeminiTextGenerationHandler(c *gin.Context, info *relaycommon.RelayInfo, resp *http.Response) (*dto.Usage, *types.NewAPIError) {
-	defer service.CloseResponseBodyGracefully(resp)
+	defer httputil.CloseResponseBodyGracefully(resp)
 
 	// 读取响应体
 	responseBody, err := io.ReadAll(resp.Body)
@@ -42,13 +43,13 @@ func GeminiTextGenerationHandler(c *gin.Context, info *relaycommon.RelayInfo, re
 	// 计算使用量（基于 UsageMetadata）
 	usage := buildUsageFromGeminiMetadata(geminiResponse.UsageMetadata, info.GetEstimatePromptTokens())
 
-	service.IOCopyBytesGracefully(c, resp, responseBody)
+	httputil.IOCopyBytesGracefully(c, resp, responseBody)
 
 	return &usage, nil
 }
 
 func NativeGeminiEmbeddingHandler(c *gin.Context, resp *http.Response, info *relaycommon.RelayInfo) (*dto.Usage, *types.NewAPIError) {
-	defer service.CloseResponseBodyGracefully(resp)
+	defer httputil.CloseResponseBodyGracefully(resp)
 
 	responseBody, err := io.ReadAll(resp.Body)
 	if err != nil {
@@ -73,7 +74,7 @@ func NativeGeminiEmbeddingHandler(c *gin.Context, resp *http.Response, info *rel
 		}
 	}
 
-	service.IOCopyBytesGracefully(c, resp, responseBody)
+	httputil.IOCopyBytesGracefully(c, resp, responseBody)
 
 	return usage, nil
 }

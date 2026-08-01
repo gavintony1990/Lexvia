@@ -14,7 +14,7 @@ import (
 	"github.com/gavintony1990/Lexvia/dto"
 	"github.com/gavintony1990/Lexvia/logger"
 	relaycommon "github.com/gavintony1990/Lexvia/relay/common"
-	"github.com/gavintony1990/Lexvia/service"
+	"github.com/gavintony1990/Lexvia/service/httputil"
 	"github.com/gavintony1990/Lexvia/types"
 
 	"github.com/gin-gonic/gin"
@@ -285,7 +285,7 @@ func aliImageHandler(a *Adaptor, c *gin.Context, resp *http.Response, info *rela
 	if err != nil {
 		return types.NewOpenAIError(err, types.ErrorCodeReadResponseBodyFailed, http.StatusInternalServerError), nil
 	}
-	service.CloseResponseBodyGracefully(resp)
+	httputil.CloseResponseBodyGracefully(resp)
 	err = common.Unmarshal(responseBody, &aliTaskResponse)
 	if err != nil {
 		return types.NewOpenAIError(err, types.ErrorCodeBadResponseBody, http.StatusInternalServerError), nil
@@ -336,7 +336,7 @@ func aliImageHandler(a *Adaptor, c *gin.Context, resp *http.Response, info *rela
 	if err != nil {
 		return types.NewError(err, types.ErrorCodeBadResponseBody), nil
 	}
-	service.IOCopyBytesGracefully(c, resp, jsonResponse)
+	httputil.IOCopyBytesGracefully(c, resp, jsonResponse)
 
 	return nil, &dto.Usage{}
 }

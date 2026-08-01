@@ -15,7 +15,7 @@ import (
 	"github.com/gavintony1990/Lexvia/relay/channel/claude"
 	relaycommon "github.com/gavintony1990/Lexvia/relay/common"
 	"github.com/gavintony1990/Lexvia/relay/helper"
-	"github.com/gavintony1990/Lexvia/service"
+	"github.com/gavintony1990/Lexvia/service/httputil"
 	"github.com/gavintony1990/Lexvia/types"
 
 	"github.com/gin-gonic/gin"
@@ -53,12 +53,12 @@ func newAwsClient(c *gin.Context, info *relaycommon.RelayInfo) (*bedrockruntime.
 		err        error
 	)
 	if info.ChannelSetting.Proxy != "" {
-		httpClient, err = service.NewProxyHttpClient(info.ChannelSetting.Proxy)
+		httpClient, err = httputil.NewProxyHttpClient(info.ChannelSetting.Proxy)
 		if err != nil {
 			return nil, fmt.Errorf("new proxy http client failed: %w", err)
 		}
 	} else {
-		httpClient = service.GetHttpClient()
+		httpClient = httputil.GetHttpClient()
 	}
 
 	awsSecret := strings.Split(info.ApiKey, "|")

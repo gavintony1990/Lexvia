@@ -11,7 +11,7 @@ import (
 
 	"github.com/gavintony1990/Lexvia/dto"
 	relaycommon "github.com/gavintony1990/Lexvia/relay/common"
-	"github.com/gavintony1990/Lexvia/service"
+	"github.com/gavintony1990/Lexvia/service/httputil"
 	"github.com/gavintony1990/Lexvia/types"
 	"github.com/gin-gonic/gin"
 )
@@ -185,7 +185,7 @@ func handleChatCompletionResponse(c *gin.Context, resp *http.Response, info *rel
 
 	// Set response headers
 	for key, values := range resp.Header {
-		if !service.ShouldCopyUpstreamHeader(c, key, values) {
+		if !httputil.ShouldCopyUpstreamHeader(c, key, values) {
 			continue
 		}
 		for _, value := range values {

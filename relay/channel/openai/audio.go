@@ -13,6 +13,7 @@ import (
 	"github.com/gavintony1990/Lexvia/logger"
 	relaycommon "github.com/gavintony1990/Lexvia/relay/common"
 	"github.com/gavintony1990/Lexvia/relay/helper"
+	"github.com/gavintony1990/Lexvia/service/httputil"
 	"github.com/gavintony1990/Lexvia/service"
 	"github.com/gavintony1990/Lexvia/types"
 	"github.com/gin-gonic/gin"
@@ -25,12 +26,12 @@ func OpenaiTTSHandler(c *gin.Context, resp *http.Response, info *relaycommon.Rel
 	// if the upstream returns a specific status code, once the upstream has already written the header,
 	// the subsequent failure of the response body should be regarded as a non-recoverable error,
 	// and can be terminated directly.
-	defer service.CloseResponseBodyGracefully(resp)
+	defer httputil.CloseResponseBodyGracefully(resp)
 	usage := &dto.Usage{}
 	usage.PromptTokens = info.GetEstimatePromptTokens()
 	usage.TotalTokens = info.GetEstimatePromptTokens()
 	for k, v := range resp.Header {
-		if !service.ShouldCopyUpstreamHeader(c, k, v) {
+		if !httputil.ShouldCopyUpstreamHeader(c, k, v) {
 			continue
 		}
 		c.Writer.Header().Set(k, v[0])
@@ -115,14 +116,14 @@ func OpenaiTTSHandler(c *gin.Context, resp *http.Response, info *relaycommon.Rel
 }
 
 func OpenaiSTTHandler(c *gin.Context, resp *http.Response, info *relaycommon.RelayInfo, responseFormat string) (*types.NewAPIError, *dto.Usage) {
-	defer service.CloseResponseBodyGracefully(resp)
+	defer httputil.CloseResponseBodyGracefully(resp)
 
 	responseBody, err := io.ReadAll(resp.Body)
 	if err != nil {
 		return types.NewOpenAIError(err, types.ErrorCodeReadResponseBodyFailed, http.StatusInternalServerError), nil
 	}
 	// 写入新的 response body
-	service.IOCopyBytesGracefully(c, resp, responseBody)
+	httputil.IOCopyBytesGracefully(c, resp, responseBody)
 
 	var responseData struct {
 		Usage *dto.Usage `json:"usage"`

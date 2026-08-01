@@ -10,6 +10,7 @@ import (
 	"github.com/gavintony1990/Lexvia/relay/channel/openai"
 	relaycommon "github.com/gavintony1990/Lexvia/relay/common"
 	"github.com/gavintony1990/Lexvia/relay/helper"
+	"github.com/gavintony1990/Lexvia/service/httputil"
 	"github.com/gavintony1990/Lexvia/service"
 	"github.com/gavintony1990/Lexvia/types"
 
@@ -73,12 +74,12 @@ func xAIStreamHandler(c *gin.Context, info *relaycommon.RelayInfo, resp *http.Re
 	}
 
 	helper.Done(c)
-	service.CloseResponseBodyGracefully(resp)
+	httputil.CloseResponseBodyGracefully(resp)
 	return usage, nil
 }
 
 func xAIHandler(c *gin.Context, info *relaycommon.RelayInfo, resp *http.Response) (*dto.Usage, *types.NewAPIError) {
-	defer service.CloseResponseBodyGracefully(resp)
+	defer httputil.CloseResponseBodyGracefully(resp)
 
 	responseBody, err := io.ReadAll(resp.Body)
 	if err != nil {
@@ -100,7 +101,7 @@ func xAIHandler(c *gin.Context, info *relaycommon.RelayInfo, resp *http.Response
 		return nil, types.NewError(err, types.ErrorCodeBadResponseBody)
 	}
 
-	service.IOCopyBytesGracefully(c, resp, encodeJson)
+	httputil.IOCopyBytesGracefully(c, resp, encodeJson)
 
 	return xaiResponse.Usage, nil
 }

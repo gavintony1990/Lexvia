@@ -16,6 +16,7 @@ import (
 	"github.com/gavintony1990/Lexvia/model"
 	"github.com/gavintony1990/Lexvia/relay/channel/gemini"
 	"github.com/gavintony1990/Lexvia/relay/channel/ollama"
+	"github.com/gavintony1990/Lexvia/service/httputil"
 	"github.com/gavintony1990/Lexvia/service"
 
 	"github.com/gin-gonic/gin"
@@ -413,7 +414,7 @@ func refreshChannelRuntimeCache() {
 			model.InitChannelCache()
 		}()
 	}
-	service.ResetProxyClientCache()
+	httputil.ResetProxyClientCache()
 }
 
 func shouldSendUpstreamModelUpdateNotification(now int64, changedChannels int, failedChannels int) bool {

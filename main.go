@@ -26,6 +26,7 @@ import (
 	perfmetrics "github.com/gavintony1990/Lexvia/pkg/perf_metrics"
 	"github.com/gavintony1990/Lexvia/relay"
 	"github.com/gavintony1990/Lexvia/router"
+	"github.com/gavintony1990/Lexvia/service/httputil"
 	"github.com/gavintony1990/Lexvia/service"
 	"github.com/gavintony1990/Lexvia/service/authz"
 	_ "github.com/gavintony1990/Lexvia/setting/performance_setting"
@@ -300,7 +301,7 @@ func InitResources() error {
 	// Initialize model settings
 	ratio_setting.InitRatioSettings()
 
-	service.InitHttpClient()
+	httputil.InitHttpClient()
 
 	service.InitTokenEncoders()
 

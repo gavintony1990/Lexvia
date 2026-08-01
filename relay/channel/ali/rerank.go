@@ -7,7 +7,7 @@ import (
 
 	"github.com/gavintony1990/Lexvia/dto"
 	relaycommon "github.com/gavintony1990/Lexvia/relay/common"
-	"github.com/gavintony1990/Lexvia/service"
+	"github.com/gavintony1990/Lexvia/service/httputil"
 	"github.com/gavintony1990/Lexvia/types"
 
 	"github.com/gin-gonic/gin"
@@ -37,7 +37,7 @@ func RerankHandler(c *gin.Context, resp *http.Response, info *relaycommon.RelayI
 	if err != nil {
 		return types.NewOpenAIError(err, types.ErrorCodeReadResponseBodyFailed, http.StatusInternalServerError), nil
 	}
-	service.CloseResponseBodyGracefully(resp)
+	httputil.CloseResponseBodyGracefully(resp)
 
 	var aliResponse AliRerankResponse
 	err = json.Unmarshal(responseBody, &aliResponse)

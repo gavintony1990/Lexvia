@@ -11,7 +11,7 @@ import (
 	"strings"
 
 	relaycommon "github.com/gavintony1990/Lexvia/relay/common"
-	"github.com/gavintony1990/Lexvia/service"
+	"github.com/gavintony1990/Lexvia/service/httputil"
 
 	"github.com/bytedance/gopkg/cache/asynccache"
 	"github.com/golang-jwt/jwt/v5"
@@ -114,12 +114,12 @@ func exchangeJwtForAccessToken(signedJWT string, info *relaycommon.RelayInfo) (s
 	var client *http.Client
 	var err error
 	if info.ChannelSetting.Proxy != "" {
-		client, err = service.NewProxyHttpClient(info.ChannelSetting.Proxy)
+		client, err = httputil.NewProxyHttpClient(info.ChannelSetting.Proxy)
 		if err != nil {
 			return "", fmt.Errorf("new proxy http client failed: %w", err)
 		}
 	} else {
-		client = service.GetHttpClient()
+		client = httputil.GetHttpClient()
 	}
 
 	resp, err := client.PostForm(authURL, data)
@@ -157,12 +157,12 @@ func exchangeJwtForAccessTokenWithProxy(signedJWT string, proxy string) (string,
 	var client *http.Client
 	var err error
 	if proxy != "" {
-		client, err = service.NewProxyHttpClient(proxy)
+		client, err = httputil.NewProxyHttpClient(proxy)
 		if err != nil {
 			return "", fmt.Errorf("new proxy http client failed: %w", err)
 		}
 	} else {
-		client = service.GetHttpClient()
+		client = httputil.GetHttpClient()
 	}
 
 	resp, err := client.PostForm(authURL, data)

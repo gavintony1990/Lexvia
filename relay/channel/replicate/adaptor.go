@@ -18,6 +18,7 @@ import (
 	"github.com/gavintony1990/Lexvia/relay/channel"
 	relaycommon "github.com/gavintony1990/Lexvia/relay/common"
 	relayconstant "github.com/gavintony1990/Lexvia/relay/constant"
+	"github.com/gavintony1990/Lexvia/service/httputil"
 	"github.com/gavintony1990/Lexvia/service"
 	"github.com/gavintony1990/Lexvia/types"
 
@@ -478,7 +479,7 @@ func uploadFileFromForm(c *gin.Context, info *relaycommon.RelayInfo, fieldCandid
 	req.Header.Set("Content-Type", formContentType)
 	req.Header.Set("Authorization", "Bearer "+info.ApiKey)
 
-	resp, err := service.GetHttpClient().Do(req)
+	resp, err := httputil.GetHttpClient().Do(req)
 	if err != nil {
 		return "", fmt.Errorf("replicate adaptor: upload image failed: %w", err)
 	}

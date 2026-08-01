@@ -24,6 +24,7 @@ import (
 	"github.com/gavintony1990/Lexvia/relay/channel"
 	taskcommon "github.com/gavintony1990/Lexvia/relay/channel/task/taskcommon"
 	relaycommon "github.com/gavintony1990/Lexvia/relay/common"
+	"github.com/gavintony1990/Lexvia/service/httputil"
 	"github.com/gavintony1990/Lexvia/service"
 )
 
@@ -244,7 +245,7 @@ func (a *TaskAdaptor) FetchTask(baseUrl, key string, body map[string]any, proxy 
 	req.Header.Set("Authorization", "Bearer "+token)
 	req.Header.Set("User-Agent", "kling-sdk/1.0")
 
-	client, err := service.GetHttpClientWithProxy(proxy)
+	client, err := httputil.GetHttpClientWithProxy(proxy)
 	if err != nil {
 		return nil, fmt.Errorf("new proxy http client failed: %w", err)
 	}

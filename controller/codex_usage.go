@@ -12,6 +12,7 @@ import (
 	"github.com/gavintony1990/Lexvia/constant"
 	"github.com/gavintony1990/Lexvia/model"
 	"github.com/gavintony1990/Lexvia/relay/channel/codex"
+	"github.com/gavintony1990/Lexvia/service/httputil"
 	"github.com/gavintony1990/Lexvia/service"
 
 	"github.com/gin-gonic/gin"
@@ -99,7 +100,7 @@ func fetchCodexChannelWhamData(
 		return
 	}
 
-	client, err := service.NewProxyHttpClient(ch.GetSetting().Proxy)
+	client, err := httputil.NewProxyHttpClient(ch.GetSetting().Proxy)
 	if err != nil {
 		common.ApiError(c, err)
 		return
@@ -133,7 +134,7 @@ func fetchCodexChannelWhamData(
 			if encErr == nil {
 				_ = model.DB.Model(&model.Channel{}).Where("id = ?", ch.Id).Update("key", string(encoded)).Error
 				model.InitChannelCache()
-				service.ResetProxyClientCache()
+				httputil.ResetProxyClientCache()
 			}
 
 			ctx2, cancel2 := context.WithTimeout(c.Request.Context(), 15*time.Second)

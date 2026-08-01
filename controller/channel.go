@@ -17,6 +17,7 @@ import (
 	relaychannel "github.com/gavintony1990/Lexvia/relay/channel"
 	"github.com/gavintony1990/Lexvia/relay/channel/gemini"
 	"github.com/gavintony1990/Lexvia/relay/channel/ollama"
+	"github.com/gavintony1990/Lexvia/service/httputil"
 	"github.com/gavintony1990/Lexvia/service"
 	"github.com/gavintony1990/Lexvia/service/authz"
 
@@ -686,7 +687,7 @@ func AddChannel(c *gin.Context) {
 		common.ApiError(c, err)
 		return
 	}
-	service.ResetProxyClientCache()
+	httputil.ResetProxyClientCache()
 	RecordManageAudit(c, "channel.create", map[string]interface{}{
 		"name":  addChannelRequest.Channel.Name,
 		"type":  addChannelRequest.Channel.Type,
@@ -1052,7 +1053,7 @@ func UpdateChannel(c *gin.Context) {
 		return
 	}
 	model.InitChannelCache()
-	service.ResetProxyClientCache()
+	httputil.ResetProxyClientCache()
 	// 记录变更的字段名（语言无关的字段标识），密钥仅记录"已更换"绝不记录内容。
 	changedFields := make([]string, 0)
 	if channel.Models != originChannel.Models {
@@ -1099,7 +1100,7 @@ func UpdateChannelStatus(c *gin.Context) {
 	changed := model.UpdateChannelStatus(id, "", req.Status, "manual operation")
 	if changed {
 		model.InitChannelCache()
-		service.ResetProxyClientCache()
+		httputil.ResetProxyClientCache()
 	}
 	RecordManageAudit(c, "channel.status_update", map[string]interface{}{
 		"id":      id,
@@ -1127,7 +1128,7 @@ func BatchUpdateChannelStatus(c *gin.Context) {
 	}
 	if changedCount > 0 {
 		model.InitChannelCache()
-		service.ResetProxyClientCache()
+		httputil.ResetProxyClientCache()
 	}
 	RecordManageAudit(c, "channel.status_update_batch", map[string]interface{}{
 		"count":  changedCount,

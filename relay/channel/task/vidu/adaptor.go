@@ -17,6 +17,7 @@ import (
 	"github.com/gavintony1990/Lexvia/relay/channel"
 	taskcommon "github.com/gavintony1990/Lexvia/relay/channel/task/taskcommon"
 	relaycommon "github.com/gavintony1990/Lexvia/relay/common"
+	"github.com/gavintony1990/Lexvia/service/httputil"
 	"github.com/gavintony1990/Lexvia/service"
 
 	"github.com/pkg/errors"
@@ -205,7 +206,7 @@ func (a *TaskAdaptor) FetchTask(baseUrl, key string, body map[string]any, proxy 
 	req.Header.Set("Accept", "application/json")
 	req.Header.Set("Authorization", "Token "+key)
 
-	client, err := service.GetHttpClientWithProxy(proxy)
+	client, err := httputil.GetHttpClientWithProxy(proxy)
 	if err != nil {
 		return nil, fmt.Errorf("new proxy http client failed: %w", err)
 	}

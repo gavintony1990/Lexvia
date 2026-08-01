@@ -12,6 +12,7 @@ import (
 	"github.com/gavintony1990/Lexvia/common"
 	"github.com/gavintony1990/Lexvia/constant"
 	"github.com/gavintony1990/Lexvia/model"
+	"github.com/gavintony1990/Lexvia/service/httputil"
 	"github.com/gavintony1990/Lexvia/service"
 	"github.com/gavintony1990/Lexvia/setting/operation_setting"
 	"github.com/gavintony1990/Lexvia/types"
@@ -144,7 +145,7 @@ func GetResponseBody(method, url string, channel *model.Channel, headers http.He
 	for k := range headers {
 		req.Header.Add(k, headers.Get(k))
 	}
-	client, err := service.NewProxyHttpClient(channel.GetSetting().Proxy)
+	client, err := httputil.NewProxyHttpClient(channel.GetSetting().Proxy)
 	if err != nil {
 		return nil, err
 	}
