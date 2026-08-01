@@ -3,8 +3,8 @@ package service
 import (
 	"math"
 
-	"github.com/QuantumNous/new-api/common"
-	"github.com/QuantumNous/new-api/setting/operation_setting"
+	"github.com/gavintony1990/Lexvia/common"
+	"github.com/gavintony1990/Lexvia/setting/operation_setting"
 )
 
 // ToolCallUsage captures all tool call counts from a single request.

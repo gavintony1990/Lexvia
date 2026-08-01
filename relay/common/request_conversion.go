@@ -1,8 +1,8 @@
 package common
 
 import (
-	"github.com/QuantumNous/new-api/dto"
-	"github.com/QuantumNous/new-api/types"
+	"github.com/gavintony1990/Lexvia/dto"
+	"github.com/gavintony1990/Lexvia/types"
 )
 
 func GuessRelayFormatFromRequest(req any) (types.RelayFormat, bool) {

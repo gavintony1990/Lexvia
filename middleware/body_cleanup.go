@@ -1,8 +1,8 @@
 package middleware
 
 import (
-	"github.com/QuantumNous/new-api/common"
-	"github.com/QuantumNous/new-api/service"
+	"github.com/gavintony1990/Lexvia/common"
+	"github.com/gavintony1990/Lexvia/service"
 	"github.com/gin-gonic/gin"
 )
 

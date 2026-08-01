@@ -7,7 +7,7 @@ import (
 	"sync"
 	"time"
 
-	"github.com/QuantumNous/new-api/model"
+	"github.com/gavintony1990/Lexvia/model"
 )
 
 const (

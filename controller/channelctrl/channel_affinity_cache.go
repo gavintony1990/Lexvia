@@ -4,7 +4,7 @@ import (
 	"net/http"
 	"strings"
 
-	"github.com/QuantumNous/new-api/service"
+	"github.com/gavintony1990/Lexvia/service"
 	"github.com/gin-gonic/gin"
 )
 

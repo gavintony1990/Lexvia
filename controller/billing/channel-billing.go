@@ -9,12 +9,12 @@ import (
 	"strconv"
 	"time"
 
-	"github.com/QuantumNous/new-api/common"
-	"github.com/QuantumNous/new-api/constant"
-	"github.com/QuantumNous/new-api/model"
-	"github.com/QuantumNous/new-api/service"
-	"github.com/QuantumNous/new-api/setting/operation_setting"
-	"github.com/QuantumNous/new-api/types"
+	"github.com/gavintony1990/Lexvia/common"
+	"github.com/gavintony1990/Lexvia/constant"
+	"github.com/gavintony1990/Lexvia/model"
+	"github.com/gavintony1990/Lexvia/service"
+	"github.com/gavintony1990/Lexvia/setting/operation_setting"
+	"github.com/gavintony1990/Lexvia/types"
 
 	"github.com/shopspring/decimal"
 

@@ -1,12 +1,12 @@
 package router
 
 import (
-	"github.com/QuantumNous/new-api/constant"
-	"github.com/QuantumNous/new-api/controller"
-	modelctrl "github.com/QuantumNous/new-api/controller/modelctrl"
-	"github.com/QuantumNous/new-api/middleware"
-	"github.com/QuantumNous/new-api/relay"
-	"github.com/QuantumNous/new-api/types"
+	"github.com/gavintony1990/Lexvia/constant"
+	"github.com/gavintony1990/Lexvia/controller"
+	modelctrl "github.com/gavintony1990/Lexvia/controller/modelctrl"
+	"github.com/gavintony1990/Lexvia/middleware"
+	"github.com/gavintony1990/Lexvia/relay"
+	"github.com/gavintony1990/Lexvia/types"
 
 	"github.com/gin-gonic/gin"
 )

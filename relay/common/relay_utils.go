@@ -6,9 +6,9 @@ import (
 	"strconv"
 	"strings"
 
-	"github.com/QuantumNous/new-api/common"
-	"github.com/QuantumNous/new-api/constant"
-	"github.com/QuantumNous/new-api/dto"
+	"github.com/gavintony1990/Lexvia/common"
+	"github.com/gavintony1990/Lexvia/constant"
+	"github.com/gavintony1990/Lexvia/dto"
 
 	"github.com/gin-gonic/gin"
 	"github.com/samber/lo"

@@ -4,8 +4,8 @@ import (
 	"errors"
 	"io"
 
-	"github.com/QuantumNous/new-api/dto"
-	relaycommon "github.com/QuantumNous/new-api/relay/common"
+	"github.com/gavintony1990/Lexvia/dto"
+	relaycommon "github.com/gavintony1990/Lexvia/relay/common"
 	"github.com/gin-gonic/gin"
 )
 

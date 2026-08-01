@@ -6,12 +6,12 @@ import (
 	"net/http"
 	"strings"
 
-	"github.com/QuantumNous/new-api/dto"
-	"github.com/QuantumNous/new-api/relay/channel"
-	"github.com/QuantumNous/new-api/relay/channel/claude"
-	relaycommon "github.com/QuantumNous/new-api/relay/common"
-	"github.com/QuantumNous/new-api/service"
-	"github.com/QuantumNous/new-api/types"
+	"github.com/gavintony1990/Lexvia/dto"
+	"github.com/gavintony1990/Lexvia/relay/channel"
+	"github.com/gavintony1990/Lexvia/relay/channel/claude"
+	relaycommon "github.com/gavintony1990/Lexvia/relay/common"
+	"github.com/gavintony1990/Lexvia/service"
+	"github.com/gavintony1990/Lexvia/types"
 	"github.com/aws/aws-sdk-go-v2/service/bedrockruntime"
 	"github.com/pkg/errors"
 

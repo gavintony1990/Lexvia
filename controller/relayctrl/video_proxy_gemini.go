@@ -1,4 +1,4 @@
-﻿package relayctrl
+package relayctrl
 
 import (
 	"fmt"
@@ -6,10 +6,10 @@ import (
 	"strconv"
 	"strings"
 
-	"github.com/QuantumNous/new-api/common"
-	"github.com/QuantumNous/new-api/constant"
-	"github.com/QuantumNous/new-api/model"
-	"github.com/QuantumNous/new-api/relay"
+	"github.com/gavintony1990/Lexvia/common"
+	"github.com/gavintony1990/Lexvia/constant"
+	"github.com/gavintony1990/Lexvia/model"
+	"github.com/gavintony1990/Lexvia/relay"
 )
 
 func getGeminiVideoURL(channel *model.Channel, task *model.Task, apiKey string) (string, error) {

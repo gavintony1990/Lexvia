@@ -1,6 +1,6 @@
 package registry
 
-import "github.com/QuantumNous/new-api/relay/channel"
+import "github.com/gavintony1990/Lexvia/relay/channel"
 
 var adaptorFactories = map[int]func() channel.Adaptor{}
 

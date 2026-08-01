@@ -10,7 +10,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/QuantumNous/new-api/common"
+	"github.com/gavintony1990/Lexvia/common"
 )
 
 const (

@@ -5,8 +5,8 @@ import (
 	"testing"
 	"time"
 
-	"github.com/QuantumNous/new-api/common"
-	"github.com/QuantumNous/new-api/model"
+	"github.com/gavintony1990/Lexvia/common"
+	"github.com/gavintony1990/Lexvia/model"
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"

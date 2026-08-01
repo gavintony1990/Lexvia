@@ -5,12 +5,12 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/QuantumNous/new-api/common"
-	"github.com/QuantumNous/new-api/constant"
-	"github.com/QuantumNous/new-api/logger"
-	"github.com/QuantumNous/new-api/model"
-	relaycommon "github.com/QuantumNous/new-api/relay/common"
-	"github.com/QuantumNous/new-api/setting/ratio_setting"
+	"github.com/gavintony1990/Lexvia/common"
+	"github.com/gavintony1990/Lexvia/constant"
+	"github.com/gavintony1990/Lexvia/logger"
+	"github.com/gavintony1990/Lexvia/model"
+	relaycommon "github.com/gavintony1990/Lexvia/relay/common"
+	"github.com/gavintony1990/Lexvia/setting/ratio_setting"
 	"github.com/gin-gonic/gin"
 )
 

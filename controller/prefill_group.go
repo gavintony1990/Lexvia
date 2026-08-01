@@ -3,8 +3,8 @@ package controller
 import (
 	"strconv"
 
-	"github.com/QuantumNous/new-api/common"
-	"github.com/QuantumNous/new-api/model"
+	"github.com/gavintony1990/Lexvia/common"
+	"github.com/gavintony1990/Lexvia/model"
 
 	"github.com/gin-gonic/gin"
 )

@@ -8,15 +8,15 @@ import (
 	"strconv"
 	"time"
 
-	"github.com/QuantumNous/new-api/common"
+	"github.com/gavintony1990/Lexvia/common"
 
-	"github.com/QuantumNous/new-api/constant"
-	"github.com/QuantumNous/new-api/dto"
-	"github.com/QuantumNous/new-api/model"
-	"github.com/QuantumNous/new-api/relay/channel"
-	"github.com/QuantumNous/new-api/relay/channel/task/taskcommon"
-	relaycommon "github.com/QuantumNous/new-api/relay/common"
-	"github.com/QuantumNous/new-api/service"
+	"github.com/gavintony1990/Lexvia/constant"
+	"github.com/gavintony1990/Lexvia/dto"
+	"github.com/gavintony1990/Lexvia/model"
+	"github.com/gavintony1990/Lexvia/relay/channel"
+	"github.com/gavintony1990/Lexvia/relay/channel/task/taskcommon"
+	relaycommon "github.com/gavintony1990/Lexvia/relay/common"
+	"github.com/gavintony1990/Lexvia/service"
 
 	"github.com/gin-gonic/gin"
 	"github.com/pkg/errors"

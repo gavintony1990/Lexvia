@@ -1,8 +1,8 @@
 package system_setting
 
 import (
-	"github.com/QuantumNous/new-api/common"
-	"github.com/QuantumNous/new-api/setting/config"
+	"github.com/gavintony1990/Lexvia/common"
+	"github.com/gavintony1990/Lexvia/setting/config"
 )
 
 type ThemeSettings struct {

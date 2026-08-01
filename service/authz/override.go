@@ -4,8 +4,8 @@ import (
 	"fmt"
 	"sort"
 
-	"github.com/QuantumNous/new-api/common"
-	"github.com/QuantumNous/new-api/model"
+	"github.com/gavintony1990/Lexvia/common"
+	"github.com/gavintony1990/Lexvia/model"
 	"github.com/casbin/casbin/v2"
 	"gorm.io/gorm"
 	"gorm.io/gorm/clause"

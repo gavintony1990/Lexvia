@@ -3,7 +3,7 @@ package dto
 import (
 	"strings"
 
-	"github.com/QuantumNous/new-api/types"
+	"github.com/gavintony1990/Lexvia/types"
 
 	"github.com/gin-gonic/gin"
 )

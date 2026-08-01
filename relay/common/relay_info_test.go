@@ -3,7 +3,7 @@ package common
 import (
 	"testing"
 
-	"github.com/QuantumNous/new-api/types"
+	"github.com/gavintony1990/Lexvia/types"
 	"github.com/stretchr/testify/require"
 )
 

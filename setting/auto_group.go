@@ -1,7 +1,7 @@
 package setting
 
 import (
-	"github.com/QuantumNous/new-api/common"
+	"github.com/gavintony1990/Lexvia/common"
 )
 
 var autoGroups = []string{

@@ -5,13 +5,13 @@ import (
 	"strings"
 	"time"
 
-	"github.com/QuantumNous/new-api/common"
-	"github.com/QuantumNous/new-api/setting"
-	"github.com/QuantumNous/new-api/setting/config"
-	"github.com/QuantumNous/new-api/setting/operation_setting"
-	"github.com/QuantumNous/new-api/setting/performance_setting"
-	"github.com/QuantumNous/new-api/setting/ratio_setting"
-	"github.com/QuantumNous/new-api/setting/system_setting"
+	"github.com/gavintony1990/Lexvia/common"
+	"github.com/gavintony1990/Lexvia/setting"
+	"github.com/gavintony1990/Lexvia/setting/config"
+	"github.com/gavintony1990/Lexvia/setting/operation_setting"
+	"github.com/gavintony1990/Lexvia/setting/performance_setting"
+	"github.com/gavintony1990/Lexvia/setting/ratio_setting"
+	"github.com/gavintony1990/Lexvia/setting/system_setting"
 	"gorm.io/gorm"
 )
 

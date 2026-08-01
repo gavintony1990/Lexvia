@@ -3,11 +3,11 @@ package router
 import (
 	"net/http"
 
-	"github.com/QuantumNous/new-api/controller"
-	channelctrl "github.com/QuantumNous/new-api/controller/channelctrl"
-	modelctrl "github.com/QuantumNous/new-api/controller/modelctrl"
-	"github.com/QuantumNous/new-api/middleware"
-	"github.com/QuantumNous/new-api/service/authz"
+	"github.com/gavintony1990/Lexvia/controller"
+	channelctrl "github.com/gavintony1990/Lexvia/controller/channelctrl"
+	modelctrl "github.com/gavintony1990/Lexvia/controller/modelctrl"
+	"github.com/gavintony1990/Lexvia/middleware"
+	"github.com/gavintony1990/Lexvia/service/authz"
 	"github.com/gin-gonic/gin"
 )
 

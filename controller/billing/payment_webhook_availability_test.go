@@ -3,8 +3,8 @@ package billing
 import (
 	"testing"
 
-	"github.com/QuantumNous/new-api/setting"
-	"github.com/QuantumNous/new-api/setting/operation_setting"
+	"github.com/gavintony1990/Lexvia/setting"
+	"github.com/gavintony1990/Lexvia/setting/operation_setting"
 	"github.com/stretchr/testify/require"
 )
 

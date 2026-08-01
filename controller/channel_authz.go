@@ -1,6 +1,6 @@
 package controller
 
-import "github.com/QuantumNous/new-api/model"
+import "github.com/gavintony1990/Lexvia/model"
 
 func ChannelHasSensitiveChanges(channel *PatchChannel, origin *model.Channel, requestData map[string]any) bool {
 	if _, ok := requestData["type"]; ok && channel.Type != origin.Type {

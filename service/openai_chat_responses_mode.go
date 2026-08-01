@@ -1,8 +1,8 @@
 package service
 
 import (
-	"github.com/QuantumNous/new-api/service/relayconvert"
-	"github.com/QuantumNous/new-api/setting/model_setting"
+	"github.com/gavintony1990/Lexvia/service/relayconvert"
+	"github.com/gavintony1990/Lexvia/setting/model_setting"
 )
 
 func ShouldChatCompletionsUseResponsesPolicy(policy model_setting.ChatCompletionsToResponsesPolicy, channelID int, channelType int, model string) bool {

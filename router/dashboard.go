@@ -1,8 +1,8 @@
 package router
 
 import (
-	"github.com/QuantumNous/new-api/middleware"
-	billing "github.com/QuantumNous/new-api/controller/billing"
+	"github.com/gavintony1990/Lexvia/middleware"
+	billing "github.com/gavintony1990/Lexvia/controller/billing"
 	"github.com/gin-contrib/gzip"
 	"github.com/gin-gonic/gin"
 )

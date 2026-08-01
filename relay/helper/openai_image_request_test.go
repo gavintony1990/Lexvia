@@ -9,8 +9,8 @@ import (
 	"net/url"
 	"testing"
 
-	"github.com/QuantumNous/new-api/common"
-	relayconstant "github.com/QuantumNous/new-api/relay/constant"
+	"github.com/gavintony1990/Lexvia/common"
+	relayconstant "github.com/gavintony1990/Lexvia/relay/constant"
 	"github.com/gin-gonic/gin"
 	"github.com/stretchr/testify/require"
 )

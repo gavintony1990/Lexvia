@@ -9,18 +9,18 @@ import (
 	"strings"
 	"time"
 
-	"github.com/QuantumNous/new-api/common"
-	"github.com/QuantumNous/new-api/model"
+	"github.com/gavintony1990/Lexvia/common"
+	"github.com/gavintony1990/Lexvia/model"
 	"github.com/gin-gonic/gin"
 
-	"github.com/QuantumNous/new-api/constant"
-	"github.com/QuantumNous/new-api/dto"
-	"github.com/QuantumNous/new-api/relay/channel"
-	geminitask "github.com/QuantumNous/new-api/relay/channel/task/gemini"
-	taskcommon "github.com/QuantumNous/new-api/relay/channel/task/taskcommon"
-	vertexcore "github.com/QuantumNous/new-api/relay/channel/vertex"
-	relaycommon "github.com/QuantumNous/new-api/relay/common"
-	"github.com/QuantumNous/new-api/service"
+	"github.com/gavintony1990/Lexvia/constant"
+	"github.com/gavintony1990/Lexvia/dto"
+	"github.com/gavintony1990/Lexvia/relay/channel"
+	geminitask "github.com/gavintony1990/Lexvia/relay/channel/task/gemini"
+	taskcommon "github.com/gavintony1990/Lexvia/relay/channel/task/taskcommon"
+	vertexcore "github.com/gavintony1990/Lexvia/relay/channel/vertex"
+	relaycommon "github.com/gavintony1990/Lexvia/relay/common"
+	"github.com/gavintony1990/Lexvia/service"
 )
 
 // ============================

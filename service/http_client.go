@@ -9,9 +9,9 @@ import (
 	"sync"
 	"time"
 
-	"github.com/QuantumNous/new-api/common"
-	"github.com/QuantumNous/new-api/pkg/circuitbreaker"
-	"github.com/QuantumNous/new-api/setting/system_setting"
+	"github.com/gavintony1990/Lexvia/common"
+	"github.com/gavintony1990/Lexvia/pkg/circuitbreaker"
+	"github.com/gavintony1990/Lexvia/setting/system_setting"
 
 	"golang.org/x/net/proxy"
 )

@@ -1,16 +1,16 @@
 package router
 
 import (
-	"github.com/QuantumNous/new-api/controller"
-	billing "github.com/QuantumNous/new-api/controller/billing"
-	channelctrl "github.com/QuantumNous/new-api/controller/channelctrl"
-	modelctrl "github.com/QuantumNous/new-api/controller/modelctrl"
-	relayctrl "github.com/QuantumNous/new-api/controller/relayctrl"
-	system "github.com/QuantumNous/new-api/controller/system"
-	"github.com/QuantumNous/new-api/middleware"
+	"github.com/gavintony1990/Lexvia/controller"
+	billing "github.com/gavintony1990/Lexvia/controller/billing"
+	channelctrl "github.com/gavintony1990/Lexvia/controller/channelctrl"
+	modelctrl "github.com/gavintony1990/Lexvia/controller/modelctrl"
+	relayctrl "github.com/gavintony1990/Lexvia/controller/relayctrl"
+	system "github.com/gavintony1990/Lexvia/controller/system"
+	"github.com/gavintony1990/Lexvia/middleware"
 
 	// Import oauth package to register providers via init()
-	_ "github.com/QuantumNous/new-api/oauth"
+	_ "github.com/gavintony1990/Lexvia/oauth"
 
 	"github.com/gin-contrib/gzip"
 	"github.com/gin-gonic/gin"

@@ -1,9 +1,9 @@
 package router
 
 import (
-	"github.com/QuantumNous/new-api/controller"
-	relayctrl "github.com/QuantumNous/new-api/controller/relayctrl"
-	"github.com/QuantumNous/new-api/middleware"
+	"github.com/gavintony1990/Lexvia/controller"
+	relayctrl "github.com/gavintony1990/Lexvia/controller/relayctrl"
+	"github.com/gavintony1990/Lexvia/middleware"
 
 	"github.com/gin-gonic/gin"
 )

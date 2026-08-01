@@ -1,4 +1,4 @@
-module github.com/QuantumNous/new-api
+module github.com/gavintony1990/Lexvia
 
 // +heroku goVersion go1.22
 go 1.25.0
