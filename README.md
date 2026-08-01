@@ -1,10 +1,12 @@
 <div align="center">
 
-![new-api](/web/default/public/logo.png)
+![Lexvia](/web/default/public/logo.png)
 
-# New API
+# Lexvia
 
 🍥 **Next-Generation LLM Gateway and AI Asset Management System**
+
+> **Fork Notice**: This project is a fork of [Calcium-Ion/new-api](https://github.com/Calcium-Ion/new-api). Modifications have been made for specific use cases. Licensed under AGPL v3.
 
 <p align="center">
   <a href="./README.zh_CN.md">简体中文</a> |
@@ -17,15 +19,6 @@
 <p align="center">
   <a href="https://raw.githubusercontent.com/Calcium-Ion/new-api/main/LICENSE">
     <img src="https://img.shields.io/github/license/Calcium-Ion/new-api?color=brightgreen" alt="license">
-  </a><!--
-  --><a href="https://github.com/Calcium-Ion/new-api/releases/latest">
-    <img src="https://img.shields.io/github/v/release/Calcium-Ion/new-api?color=brightgreen&include_prereleases" alt="release">
-  </a><!--
-  --><a href="https://hub.docker.com/r/CalciumIon/new-api">
-    <img src="https://img.shields.io/badge/docker-dockerHub-blue" alt="docker">
-  </a><!--
-  --><a href="https://goreportcard.com/report/github.com/Calcium-Ion/new-api">
-    <img src="https://goreportcard.com/badge/github.com/Calcium-Ion/new-api" alt="GoReportCard">
   </a>
 </p>
 

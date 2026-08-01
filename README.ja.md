@@ -1,10 +1,12 @@
 <div align="center">
 
-![new-api](/web/default/public/logo.png)
+![Lexvia](/web/default/public/logo.png)
 
-# New API
+# Lexvia
 
 🍥 **次世代大規模モデルゲートウェイとAI資産管理システム**
+
+> **Fork 通知**: このプロジェクトは [Calcium-Ion/new-api](https://github.com/Calcium-Ion/new-api) のフォークです。特定のユースケース向けに変更が加えられています。AGPL v3 ライセンスの下で提供されます。
 
 <p align="center">
   <a href="./README.zh_CN.md">简体中文</a> |

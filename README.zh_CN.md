@@ -1,10 +1,12 @@
 <div align="center">
 
-![new-api](/web/default/public/logo.png)
+![Lexvia](/web/default/public/logo.png)
 
-# New API
+# Lexvia
 
 🍥 **新一代大模型网关与AI资产管理系统**
+
+> **Fork 声明**: 本作品基于 [Calcium-Ion/new-api](https://github.com/Calcium-Ion/new-api) 修改，遵循 AGPL v3 许可证。
 
 <p align="center">
   简体中文 |

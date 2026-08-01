@@ -1,10 +1,12 @@
 <div align="center">
 
-![new-api](/web/default/public/logo.png)
+![Lexvia](/web/default/public/logo.png)
 
-# New API
+# Lexvia
 
 🍥 **Passerelle de modèles étendus de nouvelle génération et système de gestion d'actifs d'IA**
+
+> **Avis de fork**: Ce projet est un fork de [Calcium-Ion/new-api](https://github.com/Calcium-Ion/new-api). Des modifications ont été apportées pour des cas d'utilisation spécifiques. Sous licence AGPL v3.
 
 <p align="center">
   <a href="./README.zh_CN.md">简体中文</a> |
