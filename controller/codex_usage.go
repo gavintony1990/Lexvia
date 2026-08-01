@@ -13,6 +13,7 @@ import (
 	"github.com/gavintony1990/Lexvia/model"
 	"github.com/gavintony1990/Lexvia/relay/channel/codex"
 	"github.com/gavintony1990/Lexvia/service/httputil"
+	codexSvc "github.com/gavintony1990/Lexvia/service/codex"
 	"github.com/gavintony1990/Lexvia/service"
 
 	"github.com/gin-gonic/gin"
@@ -21,7 +22,7 @@ import (
 func GetCodexChannelUsage(c *gin.Context) {
 	fetchCodexChannelWhamData(
 		c,
-		service.FetchCodexWhamUsage,
+		codexSvc.FetchCodexWhamUsage,
 		"failed to fetch codex usage",
 		"获取用量信息失败，请稍后重试",
 	)
@@ -120,7 +121,7 @@ func fetchCodexChannelWhamData(
 		refreshCtx, refreshCancel := context.WithTimeout(c.Request.Context(), 10*time.Second)
 		defer refreshCancel()
 
-		res, refreshErr := service.RefreshCodexOAuthTokenWithProxy(refreshCtx, oauthKey.RefreshToken, ch.GetSetting().Proxy)
+		res, refreshErr := codexSvc.RefreshCodexOAuthTokenWithProxy(refreshCtx, oauthKey.RefreshToken, ch.GetSetting().Proxy)
 		if refreshErr == nil {
 			oauthKey.AccessToken = res.AccessToken
 			oauthKey.RefreshToken = res.RefreshToken

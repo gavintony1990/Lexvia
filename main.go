@@ -27,6 +27,7 @@ import (
 	"github.com/gavintony1990/Lexvia/relay"
 	"github.com/gavintony1990/Lexvia/router"
 	"github.com/gavintony1990/Lexvia/service/httputil"
+	codexSvc "github.com/gavintony1990/Lexvia/service/codex"
 	"github.com/gavintony1990/Lexvia/service"
 	"github.com/gavintony1990/Lexvia/service/authz"
 	_ "github.com/gavintony1990/Lexvia/setting/performance_setting"
@@ -116,7 +117,7 @@ func main() {
 	}
 
 	// Codex credential auto-refresh check every 10 minutes, refresh when expires within 1 day
-	service.StartCodexCredentialAutoRefreshTask()
+	codexSvc.StartCodexCredentialAutoRefreshTask()
 
 	// Subscription quota reset task (daily/weekly/monthly/custom)
 	service.StartSubscriptionQuotaResetTask()

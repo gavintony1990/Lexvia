@@ -19,7 +19,7 @@ import (
 	"github.com/gavintony1990/Lexvia/relay/channel/gemini"
 	"github.com/gavintony1990/Lexvia/relay/channel/ollama"
 	"github.com/gavintony1990/Lexvia/service/httputil"
-	"github.com/gavintony1990/Lexvia/service"
+	codexSvc "github.com/gavintony1990/Lexvia/service/codex"
 	"github.com/gavintony1990/Lexvia/service/authz"
 
 	"github.com/gin-gonic/gin"
@@ -535,7 +535,7 @@ func RefreshCodexChannelCredential(c *gin.Context) {
 	ctx, cancel := context.WithTimeout(c.Request.Context(), 10*time.Second)
 	defer cancel()
 
-	oauthKey, ch, err := service.RefreshCodexChannelCredential(ctx, channelId, service.CodexCredentialRefreshOptions{ResetCaches: true})
+	oauthKey, ch, err := codexSvc.RefreshCodexChannelCredential(ctx, channelId, codexSvc.CodexCredentialRefreshOptions{ResetCaches: true})
 	if err != nil {
 		common.SysError("failed to refresh codex channel credential: " + err.Error())
 		c.JSON(http.StatusOK, gin.H{"success": false, "message": "刷新凭证失败，请稍后重试"})
